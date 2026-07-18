@@ -1,0 +1,62 @@
+/* ── Light mode token overrides ──────────────────────────────────────────
+   Applied when the "light" class is on <html>.
+   Dark mode (default) values live in :root and .dark above.
+   ───────────────────────────────────────────────────────────────────────── */
+html.light {
+  --background:    oklch(0.99 0.001 250);
+  --foreground:    oklch(0.12 0.005 250);
+  --ds-bg:         oklch(0.99 0.001 250);
+
+  --ds-surface-0: oklch(0.97 0.002 250);
+  --ds-surface-1: oklch(0.96 0.002 250);
+  --ds-surface-2: oklch(0.93 0.003 250);
+  --ds-surface-3: oklch(0.89 0.003 250);
+
+  --ds-fg:         oklch(0.12 0.005 250);
+  --ds-fg-muted:   oklch(0.38 0.008 250);
+  --ds-fg-subtle:  oklch(0.56 0.006 250);
+
+  /* Brand accent stays the same */
+  --ds-accent:       oklch(0.58 0.19 251);
+  --ds-accent-hover: oklch(0.52 0.20 251);
+  --ds-accent-fg:    oklch(0.99 0 0);
+  --ds-accent-subtle: oklch(0.58 0.19 251 / 10%);
+  --ds-accent-ring:   oklch(0.58 0.19 251 / 30%);
+
+  --ds-border:       oklch(0 0 0 / 10%);
+  --ds-border-hover: oklch(0 0 0 / 20%);
+
+  /* shadcn semantic */
+  --card:                   oklch(0.96 0.002 250);
+  --card-foreground:        oklch(0.12 0.005 250);
+  --popover:                oklch(0.96 0.002 250);
+  --popover-foreground:     oklch(0.12 0.005 250);
+  --primary:                oklch(0.58 0.19 251);
+  --primary-foreground:     oklch(0.99 0 0);
+  --secondary:              oklch(0.93 0.003 250);
+  --secondary-foreground:   oklch(0.12 0.005 250);
+  --muted:                  oklch(0.93 0.003 250);
+  --muted-foreground:       oklch(0.38 0.008 250);
+  --accent:                 oklch(0.93 0.003 250);
+  --accent-foreground:      oklch(0.12 0.005 250);
+  --destructive:            oklch(0.55 0.22 27);
+  --border:                 oklch(0 0 0 / 10%);
+  --input:                  oklch(0 0 0 / 10%);
+  --ring:                   oklch(0.58 0.19 251 / 35%);
+
+  /* Shadows — lighter for light mode */
+  --ds-shadow-sm:   0 1px 2px oklch(0 0 0 / 10%);
+  --ds-shadow-md:   0 4px 12px oklch(0 0 0 / 10%), 0 1px 3px oklch(0 0 0 / 8%);
+  --ds-shadow-lg:   0 8px 32px oklch(0 0 0 / 12%), 0 2px 8px oklch(0 0 0 / 8%);
+  --ds-shadow-card: 0 0 0 1px oklch(0 0 0 / 8%), 0 2px 8px oklch(0 0 0 / 6%);
+
+  /* Light mode scrollbar */
+  scrollbar-color: oklch(0 0 0 / 14%) transparent;
+}
+
+html.light ::-webkit-scrollbar-thumb {
+  background: oklch(0 0 0 / 14%);
+}
+html.light ::-webkit-scrollbar-thumb:hover {
+  background: oklch(0 0 0 / 24%);
+}

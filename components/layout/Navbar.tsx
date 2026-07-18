@@ -2,13 +2,16 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Menu, X } from "lucide-react";
 
+
 const NAV_LINKS = [
-  { label: "Work",    href: "#work" },
-  { label: "About",   href: "#about" },
-  { label: "Writing", href: "#writing" },
+  { label: "About",    href: "#about" },
+  { label: "Projects", href: "#projects" },
+  { label: "Skills",   href: "#skills" },
+  { label: "Contact",  href: "#contact" },
 ] as const;
 
 /**
@@ -18,25 +21,30 @@ const NAV_LINKS = [
  * and a hairline border once the user scrolls past 24px.
  *
  * Layout (desktop):
- *   [Wordmark]   [Work · About · Writing]   [Resume] [Contact]
+ *   [Harshdeep]   [About · Projects · Skills · Contact]
  *
  * Layout (mobile):
- *   [Wordmark]   [☰ / ✕]
- *   → Slide-down overlay menu
+ *   [Harshdeep]   [☰ / ✕]
+ *   → Slide-down overlay with nav links only
  */
 export function Navbar() {
-  const [scrolled,  setScrolled]  = useState(false);
-  const [menuOpen,  setMenuOpen]  = useState(false);
+  const pathname = usePathname();
+  // Don't render on admin pages — admin has its own navigation shell
+  if (pathname.startsWith("/admin")) return null;
+
+  const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+
 
   /* Scroll listener */
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
-    onScroll(); // initialise
+    onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  /* Close mobile menu on desktop breakpoint */
+  /* Close mobile menu on desktop */
   useEffect(() => {
     const onResize = () => {
       if (window.innerWidth >= 768) setMenuOpen(false);
@@ -58,13 +66,11 @@ export function Navbar() {
         role="banner"
         className="fixed top-0 inset-x-0 z-50 h-16 transition-all duration-300"
         style={{
-          backgroundColor: scrolled
-            ? "oklch(0.09 0.002 250 / 88%)"
-            : "transparent",
+          backgroundColor: scrolled ? "oklch(0.09 0.002 250 / 88%)" : "transparent",
           backdropFilter: scrolled ? "blur(14px) saturate(1.4)" : "none",
           WebkitBackdropFilter: scrolled ? "blur(14px) saturate(1.4)" : "none",
           borderBottom: scrolled
-            ? "1px solid oklch(1 0 0 / 6%)"
+            ? "1px solid oklch(1 0 0 / 7%)"
             : "1px solid transparent",
         }}
       >
@@ -81,7 +87,7 @@ export function Navbar() {
             Harshdeep
           </Link>
 
-          {/* Nav links — centered via absolute positioning */}
+          {/* Nav links — absolutely centered */}
           <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 items-center gap-0.5">
             {NAV_LINKS.map((link) => (
               <Link
@@ -92,26 +98,6 @@ export function Navbar() {
                 {link.label}
               </Link>
             ))}
-          </div>
-
-          {/* Right actions */}
-          <div className="hidden md:flex items-center gap-2 ml-auto">
-            <a
-              id="nav-resume"
-              href="/resume.pdf"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center h-8 px-3.5 text-xs font-medium text-fg-muted rounded-lg border border-border bg-transparent transition-all duration-150 hover:text-foreground hover:border-border-hover hover:bg-[oklch(1_0_0_/_4%)]"
-            >
-              Resume
-            </a>
-            <a
-              id="nav-contact"
-              href="#contact"
-              className="inline-flex items-center h-8 px-3.5 text-xs font-medium text-brand-fg rounded-lg transition-all duration-150 bg-brand hover:bg-brand-hover active:scale-[0.97]"
-            >
-              Contact
-            </a>
           </div>
 
           {/* Mobile: hamburger */}
@@ -162,7 +148,7 @@ export function Navbar() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
               className="fixed inset-0 z-40 md:hidden"
-              style={{ backgroundColor: "oklch(0 0 0 / 40%)" }}
+              style={{ backgroundColor: "oklch(0 0 0 / 50%)" }}
               onClick={() => setMenuOpen(false)}
               aria-hidden="true"
             />
@@ -192,7 +178,7 @@ export function Navbar() {
                     key={link.href}
                     initial={{ opacity: 0, x: -8 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.04, duration: 0.2 }}
+                    transition={{ delay: i * 0.05, duration: 0.2 }}
                   >
                     <Link
                       href={link.href}
@@ -203,29 +189,6 @@ export function Navbar() {
                     </Link>
                   </motion.div>
                 ))}
-
-                {/* Mobile CTAs */}
-                <div
-                  className="pt-4 mt-3 grid grid-cols-2 gap-2"
-                  style={{ borderTop: "1px solid oklch(1 0 0 / 8%)" }}
-                >
-                  <a
-                    href="/resume.pdf"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={() => setMenuOpen(false)}
-                    className="flex items-center justify-center h-10 px-4 text-sm font-medium text-fg-muted rounded-lg border border-border hover:text-foreground hover:border-border-hover transition-all duration-150"
-                  >
-                    Resume
-                  </a>
-                  <a
-                    href="#contact"
-                    onClick={() => setMenuOpen(false)}
-                    className="flex items-center justify-center h-10 px-4 text-sm font-medium text-brand-fg rounded-lg bg-brand hover:bg-brand-hover transition-all duration-150"
-                  >
-                    Contact
-                  </a>
-                </div>
               </div>
             </motion.div>
           </>

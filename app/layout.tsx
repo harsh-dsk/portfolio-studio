@@ -1,8 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "./light-mode.css";
 import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
 
 /* ── Fonts ── */
 const geistSans = Geist({
@@ -72,14 +72,29 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      // Force dark mode — this is a dark-first product
-      className={`${geistSans.variable} ${geistMono.variable} dark`}
+      // Class is set dynamically by the inline script below (dark or light)
+      className={`${geistSans.variable} ${geistMono.variable}`}
       suppressHydrationWarning
     >
-      <body className="min-h-dvh flex flex-col bg-background text-foreground antialiased">
+      <head>
+        {/*
+         * Theme restoration — runs synchronously before first paint.
+         * Reads localStorage and applies "dark" or "light" class.
+         * Prevents flash of unstyled content on page load.
+         */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('portfolio-theme')||'dark';document.documentElement.classList.add(t);}catch(e){document.documentElement.classList.add('dark');}})();`,
+          }}
+        />
+      </head>
+      <body
+        className="min-h-dvh flex flex-col bg-background text-foreground antialiased"
+        suppressHydrationWarning
+      >
         <Navbar />
         {children}
-        <Footer />
+        {/* Footer — will be redesigned in a later session */}
       </body>
     </html>
   );
