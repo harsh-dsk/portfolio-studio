@@ -5,6 +5,7 @@ import { Pencil, Trash2, ExternalLink, GitBranch, Image as ImageIcon } from 'luc
 import type { Project } from '@/lib/types'
 import { ItemToggleControls } from '@/components/admin/ItemToggleControls'
 import { SortableHandle } from '@/components/admin/SortableList'
+import { normalizeUrl } from '@/lib/utils'
 
 interface ProjectCardProps {
   project: Project
@@ -90,7 +91,7 @@ export function ProjectCard({
         <div className="flex items-center gap-2 shrink-0">
           {project.liveUrl ? (
             <a
-              href={project.liveUrl}
+              href={normalizeUrl(project.liveUrl)}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-[11px] font-medium text-brand hover:text-brand-hover transition-colors"
@@ -107,7 +108,7 @@ export function ProjectCard({
 
           {project.githubUrl ? (
             <a
-              href={project.githubUrl}
+              href={normalizeUrl(project.githubUrl)}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-[11px] font-medium text-fg-subtle hover:text-foreground transition-colors"

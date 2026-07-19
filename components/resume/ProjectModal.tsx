@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, ExternalLink, GitBranch } from "lucide-react";
 import type { Project } from "@/lib/types";
 import { ImageSlider } from "./ImageSlider";
-import { cn } from "@/lib/utils";
+import { cn, normalizeUrl } from "@/lib/utils";
 
 interface ProjectModalProps {
   project: Project | null;
@@ -155,7 +155,7 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
               <div className="flex flex-wrap gap-3 pt-2">
                 {project.liveUrl && (
                   <a
-                    href={project.liveUrl}
+                    href={normalizeUrl(project.liveUrl)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 h-9 px-4 text-xs sm:text-sm font-medium rounded-lg bg-brand text-brand-fg hover:bg-brand-hover transition-colors duration-150 shadow-sm"
@@ -166,7 +166,7 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
                 )}
                 {project.githubUrl && (
                   <a
-                    href={project.githubUrl}
+                    href={normalizeUrl(project.githubUrl)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 h-9 px-4 text-xs sm:text-sm font-medium rounded-lg border border-border text-fg-muted bg-surface-1 hover:text-foreground hover:bg-surface-2 transition-all duration-150"

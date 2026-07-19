@@ -52,7 +52,7 @@ function MoonIcon() {
  */
 export function ThemeToggle() {
   // Initialise from DOM state (set by the inline script in layout.tsx)
-  const [isDark, setIsDark] = useState(true);
+  const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
     setIsDark(document.documentElement.classList.contains("dark"));

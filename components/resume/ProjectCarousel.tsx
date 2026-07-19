@@ -4,7 +4,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { ChevronLeft, ChevronRight, ExternalLink, GitBranch } from "lucide-react";
 import type { Project } from "@/lib/types";
 import { ProjectModal } from "./ProjectModal";
-import { cn } from "@/lib/utils";
+import { cn, normalizeUrl } from "@/lib/utils";
 
 /* ── Card thumbnail ── */
 function CardThumbnail({ project }: { project: Project }) {
@@ -83,12 +83,12 @@ function ProjectCard({ project, onClick }: { project: Project; onClick: () => vo
           </span>
           <div className="ml-auto flex gap-2">
             {project.liveUrl && (
-              <span onClick={(e) => { e.stopPropagation(); window.open(project.liveUrl, "_blank"); }} className="text-fg-subtle hover:text-fg-muted transition-colors cursor-pointer" title="Live Demo">
+              <span onClick={(e) => { e.stopPropagation(); window.open(normalizeUrl(project.liveUrl), "_blank"); }} className="text-fg-subtle hover:text-fg-muted transition-colors cursor-pointer" title="Live Demo">
                 <ExternalLink size={12} strokeWidth={1.75} />
               </span>
             )}
             {project.githubUrl && (
-              <span onClick={(e) => { e.stopPropagation(); window.open(project.githubUrl, "_blank"); }} className="text-fg-subtle hover:text-fg-muted transition-colors cursor-pointer" title="GitHub">
+              <span onClick={(e) => { e.stopPropagation(); window.open(normalizeUrl(project.githubUrl), "_blank"); }} className="text-fg-subtle hover:text-fg-muted transition-colors cursor-pointer" title="GitHub">
                 <GitBranch size={12} strokeWidth={1.75} />
               </span>
             )}

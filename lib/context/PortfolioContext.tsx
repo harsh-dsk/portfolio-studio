@@ -5,6 +5,7 @@ import {
   useContext,
   useState,
   useCallback,
+  useEffect,
   type ReactNode,
 } from "react";
 import type {
@@ -742,6 +743,21 @@ export function PortfolioProvider({
     await deleteProjectImageSvc(imageId, storagePath);
   }, []);
 
+  /* ── Accent Color Application ─────────────────────────────────────────── */
+  useEffect(() => {
+    const accent = data.resumeSettings?.accentColor || 'blue';
+    const ACCENT_MAP: Record<string, { brand: string; hover: string; ring: string }> = {
+      blue: { brand: 'oklch(0.63 0.19 251)', hover: 'oklch(0.57 0.21 251)', ring: 'oklch(0.63 0.19 251 / 30%)' },
+      purple: { brand: 'oklch(0.60 0.22 295)', hover: 'oklch(0.54 0.24 295)', ring: 'oklch(0.60 0.22 295 / 30%)' },
+      green: { brand: 'oklch(0.62 0.18 155)', hover: 'oklch(0.56 0.20 155)', ring: 'oklch(0.62 0.18 155 / 30%)' },
+      orange: { brand: 'oklch(0.65 0.20 45)', hover: 'oklch(0.59 0.22 45)', ring: 'oklch(0.65 0.20 45 / 30%)' },
+    };
+    const colors = ACCENT_MAP[accent] || ACCENT_MAP.blue;
+    document.documentElement.style.setProperty('--color-brand', colors.brand);
+    document.documentElement.style.setProperty('--color-brand-hover', colors.hover);
+    document.documentElement.style.setProperty('--color-brand-ring', colors.ring);
+  }, [data.resumeSettings?.accentColor]);
+
   /* ── Resume Settings Callbacks ────────────────────────────────────────── */
   const updateResumeSettings = useCallback(async (settings: Partial<ResumeSettings>) => {
     setData((prev) => ({
@@ -749,6 +765,7 @@ export function PortfolioProvider({
       resumeSettings: {
         selectedTemplate: 'modern',
         resumeMode: 'dynamic',
+        accentColor: 'blue',
         ...prev.resumeSettings,
         ...settings,
       },

@@ -6,7 +6,8 @@ import { PageHeader } from '@/components/admin/PageHeader'
 import { usePortfolio } from '@/lib/context/PortfolioContext'
 import { getResumeSettings, upsertResumeSettings, uploadResumePDF, deleteResumePDF } from '@/lib/services/resume.service'
 import { PrintableResume } from '@/components/admin/PrintableResume'
-import type { ResumeSettings } from '@/lib/types'
+import { AccentColorPicker } from '@/components/ui/AccentColorPicker'
+import type { ResumeSettings, AccentColor } from '@/lib/types'
 
 /* ── Resume template definitions ── */
 const TEMPLATES = [
@@ -353,6 +354,13 @@ export default function ResumePage() {
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-6">
             {/* ── Template selection ── */}
             <div className="space-y-5">
+              <div className="rounded-xl border border-border bg-surface-1 p-5 mb-4">
+                <AccentColorPicker
+                  value={(data.resumeSettings?.accentColor as AccentColor) || 'blue'}
+                  onChange={(color) => updateSettingsInContext({ accentColor: color })}
+                />
+              </div>
+
               <div>
                 <p className="text-xs font-medium uppercase tracking-[0.1em] text-fg-subtle mb-3">
                   Select Template

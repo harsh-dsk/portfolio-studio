@@ -49,11 +49,10 @@ export async function ensurePortfolioOwnership(userId: string, userEmail?: strin
       })
 
       if (!rpcError) {
-        console.log('[Ownership Migration] Ownership successfully transferred via RPC.')
         return
       }
-    } catch (err) {
-      console.warn('[Ownership Migration] RPC call error:', err)
+    } catch {
+      // Ignore RPC migration error
     }
   }
 

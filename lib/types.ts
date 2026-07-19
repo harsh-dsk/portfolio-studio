@@ -116,10 +116,13 @@ export interface ExternalLink {
   includeInResume?: boolean;
 }
 
-/* ── Resume Settings ── */
+/* ── Resume Settings & Theme Accent ── */
+export type AccentColor = 'blue' | 'purple' | 'green' | 'orange';
+
 export interface ResumeSettings {
   id?: string;
   selectedTemplate: string;
+  accentColor?: AccentColor;
   resumeMode: 'dynamic' | 'uploaded';
   resumePdfUrl?: string | null;
   resumeStoragePath?: string | null;

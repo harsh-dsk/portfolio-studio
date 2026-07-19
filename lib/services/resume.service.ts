@@ -11,6 +11,11 @@ export async function getResumeSettings(): Promise<ResumeSettings> {
     .eq('profile_id', ownerId)
     .maybeSingle()
 
+  let savedAccent: any = 'blue'
+  if (typeof window !== 'undefined') {
+    savedAccent = localStorage.getItem('portfolio_accent_color') || 'blue'
+  }
+
   if (error && error.code !== 'PGRST116') {
     throw new Error(`Failed to get resume settings: ${error.message}`)
   }
@@ -18,6 +23,7 @@ export async function getResumeSettings(): Promise<ResumeSettings> {
   if (!data) {
     return {
       selectedTemplate: 'modern',
+      accentColor: savedAccent,
       resumeMode: 'dynamic',
       resumePdfUrl: null,
       resumeStoragePath: null,
@@ -28,6 +34,7 @@ export async function getResumeSettings(): Promise<ResumeSettings> {
   return {
     id: data.id,
     selectedTemplate: data.selected_template || 'modern',
+    accentColor: savedAccent,
     resumeMode: (data.resume_mode as 'dynamic' | 'uploaded') || 'dynamic',
     resumePdfUrl: data.resume_pdf_url ?? null,
     resumeStoragePath: data.resume_storage_path ?? null,
@@ -38,6 +45,10 @@ export async function getResumeSettings(): Promise<ResumeSettings> {
 export async function upsertResumeSettings(updates: Partial<ResumeSettings>): Promise<void> {
   const supabase = createClient()
   const ownerId = await getOwnerId()
+
+  if (updates.accentColor && typeof window !== 'undefined') {
+    localStorage.setItem('portfolio_accent_color', updates.accentColor)
+  }
   
   const payload: any = {
     profile_id: ownerId

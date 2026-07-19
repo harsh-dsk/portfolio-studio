@@ -2,10 +2,39 @@
 
 import React from 'react'
 import type { PortfolioData } from '@/lib/types'
+import { normalizeUrl } from '@/lib/utils'
 
 interface PrintableResumeProps {
   data: PortfolioData
   template: 'modern' | 'classic' | 'minimal' | string
+}
+
+function FormattedResumeText({ text, className = 'text-[11px] text-slate-700 leading-relaxed' }: { text: string; className?: string }) {
+  if (!text) return null
+  const lines = text.split(/\r?\n/).filter((l) => l.trim() !== '')
+  if (lines.length <= 1) {
+    return <p className={className}>{text}</p>
+  }
+  return (
+    <div className="space-y-1 my-1">
+      {lines.map((line, idx) => {
+        const trimmed = line.trim()
+        const isBullet = trimmed.startsWith('•') || trimmed.startsWith('- ') || trimmed.startsWith('* ')
+        return (
+          <p key={idx} className={`${className} ${isBullet ? 'pl-2 font-normal' : ''}`}>
+            {line}
+          </p>
+        )
+      })}
+    </div>
+  )
+}
+
+const ACCENT_COLOR_STYLES: Record<string, { primaryHex: string; textClass: string }> = {
+  blue: { primaryHex: '#2563eb', textClass: 'text-blue-600' },
+  purple: { primaryHex: '#9333ea', textClass: 'text-purple-600' },
+  green: { primaryHex: '#16a34a', textClass: 'text-emerald-600' },
+  orange: { primaryHex: '#ea580c', textClass: 'text-orange-600' },
 }
 
 export function PrintableResume({ data, template }: PrintableResumeProps) {
@@ -18,10 +47,12 @@ export function PrintableResume({ data, template }: PrintableResumeProps) {
   const externalLinks = (data.externalLinks || []).filter((l) => l.includeInResume !== false)
 
   const activeTemplate = template || 'modern'
+  const accentKey = data.resumeSettings?.accentColor || 'blue'
+  const accent = ACCENT_COLOR_STYLES[accentKey] || ACCENT_COLOR_STYLES.blue
 
   return (
     <div id="resume-print-area" className="printable-resume-root">
-      {/* ── Global Print Styles ── */}
+      {/* ── Global Print Styles & Page Break Rules ── */}
       <style>{`
         @media screen {
           #resume-print-area {
@@ -66,10 +97,21 @@ export function PrintableResume({ data, template }: PrintableResumeProps) {
             color: #111827 !important;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
             box-sizing: border-box !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
+          }
+
+          /* Prevent word/URL clipping and enable proper wrapping */
+          #resume-print-area,
+          #resume-print-area * {
+            overflow-wrap: anywhere !important;
+            word-break: break-word !important;
+            box-sizing: border-box !important;
+          }
+
+          /* Prevent awkward page breaks inside items */
+          section,
+          .resume-item {
+            break-inside: avoid !important;
+            page-break-inside: avoid !important;
           }
 
           @page {
@@ -80,6 +122,8 @@ export function PrintableResume({ data, template }: PrintableResumeProps) {
           a {
             color: inherit !important;
             text-decoration: none !important;
+            overflow-wrap: anywhere !important;
+            word-break: break-word !important;
           }
         }
       `}</style>
@@ -94,7 +138,7 @@ export function PrintableResume({ data, template }: PrintableResumeProps) {
             {/* Header / Name */}
             <div>
               <h1 className="text-xl font-bold tracking-tight text-white leading-snug">{profile.name}</h1>
-              <p className="text-xs font-medium text-blue-400 mt-1">{profile.title}</p>
+              <p className="text-xs font-semibold mt-1" style={{ color: accent.primaryHex }}>{profile.title}</p>
             </div>
 
             {/* Contact Information */}
@@ -114,7 +158,9 @@ export function PrintableResume({ data, template }: PrintableResumeProps) {
                 {socialLinks.map((link) => (
                   <div key={link.id}>
                     <span className="font-medium text-slate-200">{link.label}: </span>
-                    <span className="text-blue-300 break-all">{link.url.replace(/^https?:\/\//, '')}</span>
+                    <a href={normalizeUrl(link.url)} target="_blank" rel="noopener noreferrer" className="break-all hover:underline" style={{ color: accent.primaryHex }}>
+                      {link.url.replace(/^https?:\/\//, '')}
+                    </a>
                   </div>
                 ))}
               </div>
@@ -125,8 +171,8 @@ export function PrintableResume({ data, template }: PrintableResumeProps) {
               <div className="space-y-3 border-t border-slate-700 pt-4">
                 <h2 className="text-xs uppercase tracking-wider font-semibold text-slate-400">Technical Skills</h2>
                 {skills.map((cat) => (
-                  <div key={cat.id} className="space-y-1">
-                    <p className="text-[11px] font-semibold text-blue-300">{cat.name}</p>
+                  <div key={cat.id} className="space-y-1 resume-item">
+                    <p className="text-[11px] font-semibold" style={{ color: accent.primaryHex }}>{cat.name}</p>
                     <div className="flex flex-wrap gap-1">
                       {cat.skills.map((s) => (
                         <span key={s} className="px-1.5 py-0.5 text-[10px] bg-slate-800 text-slate-200 rounded border border-slate-700">
@@ -142,31 +188,39 @@ export function PrintableResume({ data, template }: PrintableResumeProps) {
 
           {/* Right Main Body */}
           <div className="w-[70%] p-6 space-y-6 bg-white">
-            {/* Objective */}
+            {/* Summary */}
             {profile.objective && (
-              <section className="space-y-1.5">
-                <h2 className="text-xs uppercase tracking-wider font-bold text-slate-900 border-b-2 border-slate-900 pb-1">Professional Summary</h2>
-                <p className="text-slate-700 text-[11px] leading-relaxed">{profile.objective}</p>
+              <section className="space-y-1.5 resume-item">
+                <h2 className="text-xs uppercase tracking-wider font-bold text-slate-900 pb-1 border-b-2" style={{ borderColor: accent.primaryHex }}>Professional Summary</h2>
+                <FormattedResumeText text={profile.objective} className="text-slate-700 text-[11px] leading-relaxed" />
               </section>
             )}
 
             {/* Projects */}
             {projects.length > 0 && (
-              <section className="space-y-3">
-                <h2 className="text-xs uppercase tracking-wider font-bold text-slate-900 border-b-2 border-slate-900 pb-1">Key Projects</h2>
+              <section className="space-y-4">
+                <h2 className="text-xs uppercase tracking-wider font-bold text-slate-900 pb-1 border-b-2" style={{ borderColor: accent.primaryHex }}>Key Projects</h2>
                 {projects.map((p) => (
-                  <div key={p.id} className="space-y-1">
+                  <div key={p.id} className="space-y-1 resume-item">
                     <div className="flex items-baseline justify-between gap-2">
                       <h3 className="font-bold text-slate-900 text-xs">{p.title}</h3>
-                      <div className="text-[10px] text-slate-500 space-x-2">
-                        {p.liveUrl && <span>Live: {p.liveUrl.replace(/^https?:\/\//, '')}</span>}
-                        {p.githubUrl && <span>GitHub: {p.githubUrl.replace(/^https?:\/\//, '')}</span>}
+                      <div className="text-[10px] space-x-2 shrink-0">
+                        {p.liveUrl && (
+                          <a href={normalizeUrl(p.liveUrl)} target="_blank" rel="noopener noreferrer" className="hover:underline" style={{ color: accent.primaryHex }}>
+                            Live: {p.liveUrl.replace(/^https?:\/\//, '')}
+                          </a>
+                        )}
+                        {p.githubUrl && (
+                          <a href={normalizeUrl(p.githubUrl)} target="_blank" rel="noopener noreferrer" className="hover:underline" style={{ color: accent.primaryHex }}>
+                            GitHub: {p.githubUrl.replace(/^https?:\/\//, '')}
+                          </a>
+                        )}
                       </div>
                     </div>
                     {p.techStack && p.techStack.length > 0 && (
-                      <p className="text-[10px] font-mono text-blue-600 font-medium">{p.techStack.join(' • ')}</p>
+                      <p className="text-[10px] font-mono font-medium" style={{ color: accent.primaryHex }}>{p.techStack.join(' • ')}</p>
                     )}
-                    <p className="text-[11px] text-slate-600 leading-relaxed">{p.shortDescription}</p>
+                    <FormattedResumeText text={p.shortDescription} className="text-[11px] text-slate-600 leading-relaxed" />
                   </div>
                 ))}
               </section>
@@ -175,9 +229,9 @@ export function PrintableResume({ data, template }: PrintableResumeProps) {
             {/* Education */}
             {education.length > 0 && (
               <section className="space-y-3">
-                <h2 className="text-xs uppercase tracking-wider font-bold text-slate-900 border-b-2 border-slate-900 pb-1">Education</h2>
+                <h2 className="text-xs uppercase tracking-wider font-bold text-slate-900 pb-1 border-b-2" style={{ borderColor: accent.primaryHex }}>Education</h2>
                 {education.map((e) => (
-                  <div key={e.id} className="space-y-0.5">
+                  <div key={e.id} className="space-y-0.5 resume-item">
                     <div className="flex justify-between items-baseline">
                       <h3 className="font-bold text-slate-900 text-xs">{e.institution}</h3>
                       <span className="text-[10px] text-slate-500 font-medium">{e.period}</span>
@@ -195,9 +249,9 @@ export function PrintableResume({ data, template }: PrintableResumeProps) {
             {/* Achievements */}
             {achievements.length > 0 && (
               <section className="space-y-2">
-                <h2 className="text-xs uppercase tracking-wider font-bold text-slate-900 border-b-2 border-slate-900 pb-1">Achievements & Certifications</h2>
+                <h2 className="text-xs uppercase tracking-wider font-bold text-slate-900 pb-1 border-b-2" style={{ borderColor: accent.primaryHex }}>Achievements & Certifications</h2>
                 {achievements.map((a) => (
-                  <div key={a.id} className="flex justify-between items-start text-[11px]">
+                  <div key={a.id} className="flex justify-between items-start text-[11px] resume-item">
                     <div>
                       <span className="font-semibold text-slate-900">{a.title}</span>
                       {a.description && <span className="text-slate-600 block text-[10px]">{a.description}</span>}
@@ -210,13 +264,15 @@ export function PrintableResume({ data, template }: PrintableResumeProps) {
 
             {/* External Links */}
             {externalLinks.length > 0 && (
-              <section className="space-y-1.5">
-                <h2 className="text-xs uppercase tracking-wider font-bold text-slate-900 border-b-2 border-slate-900 pb-1">Additional Links</h2>
+              <section className="space-y-1.5 resume-item">
+                <h2 className="text-xs uppercase tracking-wider font-bold text-slate-900 pb-1 border-b-2" style={{ borderColor: accent.primaryHex }}>Additional Links</h2>
                 <div className="grid grid-cols-2 gap-2 text-[11px]">
                   {externalLinks.map((l) => (
                     <div key={l.id}>
                       <span className="font-semibold text-slate-800">{l.label}: </span>
-                      <span className="text-blue-600">{l.url.replace(/^https?:\/\//, '')}</span>
+                      <a href={normalizeUrl(l.url)} target="_blank" rel="noopener noreferrer" className="hover:underline" style={{ color: accent.primaryHex }}>
+                        {l.url.replace(/^https?:\/\//, '')}
+                      </a>
                     </div>
                   ))}
                 </div>
@@ -234,33 +290,35 @@ export function PrintableResume({ data, template }: PrintableResumeProps) {
           {/* Header */}
           <div className="text-center space-y-1.5 border-b border-slate-300 pb-4">
             <h1 className="text-2xl font-bold tracking-tight uppercase text-slate-900">{profile.name}</h1>
-            <p className="text-xs font-semibold text-slate-600 uppercase tracking-widest">{profile.title}</p>
+            <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: accent.primaryHex }}>{profile.title}</p>
             <div className="flex flex-wrap justify-center items-center gap-x-3 gap-y-1 text-[11px] text-slate-600 pt-1">
               {profile.email && <span>{profile.email}</span>}
               {profile.phone && <span>• {profile.phone}</span>}
               {profile.location && <span>• {profile.location}</span>}
             </div>
             {socialLinks.length > 0 && (
-              <div className="flex flex-wrap justify-center items-center gap-x-3 gap-y-1 text-[10px] text-blue-700">
+              <div className="flex flex-wrap justify-center items-center gap-x-3 gap-y-1 text-[10px]">
                 {socialLinks.map((l) => (
-                  <span key={l.id}>{l.label}: {l.url.replace(/^https?:\/\//, '')}</span>
+                  <a key={l.id} href={normalizeUrl(l.url)} target="_blank" rel="noopener noreferrer" className="hover:underline" style={{ color: accent.primaryHex }}>
+                    {l.label}: {l.url.replace(/^https?:\/\//, '')}
+                  </a>
                 ))}
               </div>
             )}
           </div>
 
-          {/* Objective */}
+          {/* Summary */}
           {profile.objective && (
-            <section className="space-y-1">
-              <h2 className="text-xs uppercase tracking-wider font-bold text-slate-900 border-b border-slate-400 pb-0.5">Summary</h2>
-              <p className="text-[11px] text-slate-700 leading-relaxed">{profile.objective}</p>
+            <section className="space-y-1 resume-item">
+              <h2 className="text-xs uppercase tracking-wider font-bold text-slate-900 pb-0.5 border-b-2" style={{ borderColor: accent.primaryHex }}>Summary</h2>
+              <FormattedResumeText text={profile.objective} className="text-[11px] text-slate-700 leading-relaxed" />
             </section>
           )}
 
           {/* Technical Skills */}
           {skills.length > 0 && (
-            <section className="space-y-1.5">
-              <h2 className="text-xs uppercase tracking-wider font-bold text-slate-900 border-b border-slate-400 pb-0.5">Technical Skills</h2>
+            <section className="space-y-1.5 resume-item">
+              <h2 className="text-xs uppercase tracking-wider font-bold text-slate-900 pb-0.5 border-b-2" style={{ borderColor: accent.primaryHex }}>Technical Skills</h2>
               <div className="space-y-1 text-[11px]">
                 {skills.map((cat) => (
                   <div key={cat.id} className="flex">
@@ -275,17 +333,26 @@ export function PrintableResume({ data, template }: PrintableResumeProps) {
           {/* Projects */}
           {projects.length > 0 && (
             <section className="space-y-3">
-              <h2 className="text-xs uppercase tracking-wider font-bold text-slate-900 border-b border-slate-400 pb-0.5">Projects</h2>
+              <h2 className="text-xs uppercase tracking-wider font-bold text-slate-900 pb-0.5 border-b-2" style={{ borderColor: accent.primaryHex }}>Projects</h2>
               {projects.map((p) => (
-                <div key={p.id} className="space-y-0.5">
+                <div key={p.id} className="space-y-0.5 resume-item">
                   <div className="flex justify-between items-baseline">
                     <h3 className="font-bold text-slate-900 text-xs">{p.title}</h3>
-                    <span className="text-[10px] text-slate-500 font-mono">
-                      {p.liveUrl || p.githubUrl ? (p.liveUrl || p.githubUrl)?.replace(/^https?:\/\//, '') : ''}
-                    </span>
+                    <div className="text-[10px] font-mono space-x-2">
+                      {p.liveUrl && (
+                        <a href={normalizeUrl(p.liveUrl)} target="_blank" rel="noopener noreferrer" className="hover:underline" style={{ color: accent.primaryHex }}>
+                          {p.liveUrl.replace(/^https?:\/\//, '')}
+                        </a>
+                      )}
+                      {p.githubUrl && (
+                        <a href={normalizeUrl(p.githubUrl)} target="_blank" rel="noopener noreferrer" className="hover:underline" style={{ color: accent.primaryHex }}>
+                          {p.githubUrl.replace(/^https?:\/\//, '')}
+                        </a>
+                      )}
+                    </div>
                   </div>
                   {p.techStack && <p className="text-[10px] italic text-slate-600 font-medium">Technologies: {p.techStack.join(', ')}</p>}
-                  <p className="text-[11px] text-slate-700">{p.shortDescription}</p>
+                  <FormattedResumeText text={p.shortDescription} className="text-[11px] text-slate-700 leading-relaxed" />
                 </div>
               ))}
             </section>
@@ -294,9 +361,9 @@ export function PrintableResume({ data, template }: PrintableResumeProps) {
           {/* Education */}
           {education.length > 0 && (
             <section className="space-y-2">
-              <h2 className="text-xs uppercase tracking-wider font-bold text-slate-900 border-b border-slate-400 pb-0.5">Education</h2>
+              <h2 className="text-xs uppercase tracking-wider font-bold text-slate-900 pb-0.5 border-b-2" style={{ borderColor: accent.primaryHex }}>Education</h2>
               {education.map((e) => (
-                <div key={e.id} className="space-y-0.5">
+                <div key={e.id} className="space-y-0.5 resume-item">
                   <div className="flex justify-between items-baseline">
                     <h3 className="font-bold text-slate-900 text-xs">{e.institution}</h3>
                     <span className="text-[10px] text-slate-600 font-medium">{e.period}</span>
@@ -316,9 +383,9 @@ export function PrintableResume({ data, template }: PrintableResumeProps) {
           {/* Achievements */}
           {achievements.length > 0 && (
             <section className="space-y-1.5">
-              <h2 className="text-xs uppercase tracking-wider font-bold text-slate-900 border-b border-slate-400 pb-0.5">Achievements</h2>
+              <h2 className="text-xs uppercase tracking-wider font-bold text-slate-900 pb-0.5 border-b-2" style={{ borderColor: accent.primaryHex }}>Achievements</h2>
               {achievements.map((a) => (
-                <div key={a.id} className="flex justify-between text-[11px]">
+                <div key={a.id} className="flex justify-between text-[11px] resume-item">
                   <div>
                     <span className="font-bold text-slate-900">{a.title}</span>
                     {a.description && <span className="text-slate-600"> — {a.description}</span>}
@@ -331,11 +398,16 @@ export function PrintableResume({ data, template }: PrintableResumeProps) {
 
           {/* External Links */}
           {externalLinks.length > 0 && (
-            <section className="space-y-1">
-              <h2 className="text-xs uppercase tracking-wider font-bold text-slate-900 border-b border-slate-400 pb-0.5">External Links</h2>
+            <section className="space-y-1 resume-item">
+              <h2 className="text-xs uppercase tracking-wider font-bold text-slate-900 pb-0.5 border-b-2" style={{ borderColor: accent.primaryHex }}>External Links</h2>
               <div className="flex flex-wrap gap-4 text-[11px]">
                 {externalLinks.map((l) => (
-                  <span key={l.id}><strong className="text-slate-900">{l.label}:</strong> <span className="text-blue-700">{l.url}</span></span>
+                  <span key={l.id}>
+                    <strong className="text-slate-900">{l.label}:</strong>{' '}
+                    <a href={normalizeUrl(l.url)} target="_blank" rel="noopener noreferrer" className="hover:underline" style={{ color: accent.primaryHex }}>
+                      {l.url.replace(/^https?:\/\//, '')}
+                    </a>
+                  </span>
                 ))}
               </div>
             </section>
@@ -349,18 +421,20 @@ export function PrintableResume({ data, template }: PrintableResumeProps) {
       {activeTemplate === 'minimal' && (
         <div className="p-8 space-y-6 text-slate-800 bg-white leading-relaxed text-xs">
           {/* Header */}
-          <div className="space-y-2 border-l-4 border-slate-900 pl-4">
+          <div className="space-y-2 border-l-4 pl-4" style={{ borderLeftColor: accent.primaryHex }}>
             <h1 className="text-2xl font-bold tracking-tight text-slate-900">{profile.name}</h1>
-            <p className="text-xs font-semibold text-emerald-600 uppercase tracking-wider">{profile.title}</p>
+            <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: accent.primaryHex }}>{profile.title}</p>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-500 pt-1">
               {profile.email && <span>{profile.email}</span>}
               {profile.phone && <span>{profile.phone}</span>}
               {profile.location && <span>{profile.location}</span>}
             </div>
             {socialLinks.length > 0 && (
-              <div className="flex flex-wrap gap-3 text-[10px] text-slate-600 pt-0.5">
+              <div className="flex flex-wrap gap-3 text-[10px] pt-0.5">
                 {socialLinks.map((l) => (
-                  <span key={l.id} className="underline">{l.label} ({l.url.replace(/^https?:\/\//, '')})</span>
+                  <a key={l.id} href={normalizeUrl(l.url)} target="_blank" rel="noopener noreferrer" className="underline hover:opacity-80" style={{ color: accent.primaryHex }}>
+                    {l.label} ({l.url.replace(/^https?:\/\//, '')})
+                  </a>
                 ))}
               </div>
             )}
@@ -368,15 +442,15 @@ export function PrintableResume({ data, template }: PrintableResumeProps) {
 
           {/* Summary */}
           {profile.objective && (
-            <section className="space-y-1">
+            <section className="space-y-1 resume-item">
               <h2 className="text-[11px] uppercase tracking-widest font-bold text-slate-400">About</h2>
-              <p className="text-[11px] text-slate-700 leading-relaxed">{profile.objective}</p>
+              <FormattedResumeText text={profile.objective} className="text-[11px] text-slate-700 leading-relaxed" />
             </section>
           )}
 
           {/* Technical Skills */}
           {skills.length > 0 && (
-            <section className="space-y-2">
+            <section className="space-y-2 resume-item">
               <h2 className="text-[11px] uppercase tracking-widest font-bold text-slate-400">Skills</h2>
               <div className="grid grid-cols-2 gap-3 text-[11px]">
                 {skills.map((cat) => (
@@ -394,13 +468,17 @@ export function PrintableResume({ data, template }: PrintableResumeProps) {
             <section className="space-y-3">
               <h2 className="text-[11px] uppercase tracking-widest font-bold text-slate-400">Projects</h2>
               {projects.map((p) => (
-                <div key={p.id} className="space-y-1 border-l-2 border-slate-100 pl-3">
+                <div key={p.id} className="space-y-1 border-l-2 border-slate-100 pl-3 resume-item">
                   <div className="flex justify-between items-baseline">
                     <h3 className="font-bold text-slate-900 text-xs">{p.title}</h3>
-                    {p.liveUrl && <span className="text-[10px] text-emerald-600">{p.liveUrl.replace(/^https?:\/\//, '')}</span>}
+                    {p.liveUrl && (
+                      <a href={normalizeUrl(p.liveUrl)} target="_blank" rel="noopener noreferrer" className="text-[10px] hover:underline" style={{ color: accent.primaryHex }}>
+                        {p.liveUrl.replace(/^https?:\/\//, '')}
+                      </a>
+                    )}
                   </div>
                   {p.techStack && <p className="text-[10px] font-mono text-slate-500">{p.techStack.join(' • ')}</p>}
-                  <p className="text-[11px] text-slate-600">{p.shortDescription}</p>
+                  <FormattedResumeText text={p.shortDescription} className="text-[11px] text-slate-600 leading-relaxed" />
                 </div>
               ))}
             </section>
@@ -411,7 +489,7 @@ export function PrintableResume({ data, template }: PrintableResumeProps) {
             <section className="space-y-3">
               <h2 className="text-[11px] uppercase tracking-widest font-bold text-slate-400">Education</h2>
               {education.map((e) => (
-                <div key={e.id} className="space-y-0.5 border-l-2 border-slate-100 pl-3">
+                <div key={e.id} className="space-y-0.5 border-l-2 border-slate-100 pl-3 resume-item">
                   <div className="flex justify-between items-baseline">
                     <h3 className="font-bold text-slate-900 text-xs">{e.institution}</h3>
                     <span className="text-[10px] text-slate-400 font-mono">{e.period}</span>
@@ -430,7 +508,7 @@ export function PrintableResume({ data, template }: PrintableResumeProps) {
             <section className="space-y-2">
               <h2 className="text-[11px] uppercase tracking-widest font-bold text-slate-400">Achievements</h2>
               {achievements.map((a) => (
-                <div key={a.id} className="flex justify-between items-baseline text-[11px] border-l-2 border-slate-100 pl-3">
+                <div key={a.id} className="flex justify-between items-baseline text-[11px] border-l-2 border-slate-100 pl-3 resume-item">
                   <div>
                     <span className="font-bold text-slate-900">{a.title}</span>
                     {a.description && <span className="text-slate-600 text-[10px] block">{a.description}</span>}
@@ -449,7 +527,9 @@ export function PrintableResume({ data, template }: PrintableResumeProps) {
                 {externalLinks.map((l) => (
                   <div key={l.id}>
                     <span className="font-semibold text-slate-800">{l.label}: </span>
-                    <span className="text-emerald-600 text-[10px]">{l.url}</span>
+                    <a href={normalizeUrl(l.url)} target="_blank" rel="noopener noreferrer" className="text-[10px] hover:underline" style={{ color: accent.primaryHex }}>
+                      {l.url.replace(/^https?:\/\//, '')}
+                    </a>
                   </div>
                 ))}
               </div>
