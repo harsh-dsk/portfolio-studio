@@ -1,0 +1,174 @@
+"use client";
+
+import { useEffect, useState, useRef } from "react";
+import { initialPortfolioData } from "@/lib/data/initial-data";
+import { loadPortfolioData, STORAGE_EVENT_KEY } from "@/lib/storage";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
+import { ProfilePhoto } from "@/components/ui/ProfilePhoto";
+import { AnimatedBackground } from "@/components/ui/AnimatedBackground";
+import { ContactInfo } from "@/components/resume/ContactInfo";
+import { SocialLinks } from "@/components/resume/SocialLinks";
+import { ResumeSection } from "@/components/resume/ResumeSection";
+import { Objective } from "@/components/resume/Objective";
+import { EducationSection } from "@/components/resume/Education";
+import { TechnicalSkills } from "@/components/resume/TechnicalSkills";
+import { ProjectCarousel } from "@/components/resume/ProjectCarousel";
+import { Achievements } from "@/components/resume/Achievements";
+import { ExternalLinks } from "@/components/resume/ExternalLinks";
+import type { PortfolioData } from "@/lib/types";
+
+/**
+ * PublicPortfolio
+ *
+ * Client component so it can:
+ *  1. Read from localStorage on mount (shows latest admin changes after refresh)
+ *  2. Listen for `storage` events (cross-tab live updates when admin saves)
+ *
+ * Renders with initialPortfolioData on the server (SSR), then hydrates with
+ * localStorage data on the client — no flash because the structure is identical.
+ *
+ * SUPABASE MIGRATION:
+ *  Replace `loadPortfolioData()` with a server-side fetch in a Server Component
+ *  and pass data as a prop. The UI components remain unchanged.
+ */
+export function PublicPortfolio() {
+  const [data, setData] = useState<PortfolioData>(initialPortfolioData);
+
+  useEffect(() => {
+    // Load latest saved data from localStorage
+    const stored = loadPortfolioData();
+    if (stored) setData(stored);
+
+    // Listen for changes made in the admin tab (BroadcastChannel via storage event)
+    const handleStorageEvent = (e: StorageEvent) => {
+      if (e.key === STORAGE_EVENT_KEY && e.newValue) {
+        try {
+          setData(JSON.parse(e.newValue) as PortfolioData);
+        } catch {}
+      }
+    };
+    window.addEventListener("storage", handleStorageEvent);
+    return () => window.removeEventListener("storage", handleStorageEvent);
+  }, []);
+
+  const { profile, socialLinks, education, skills, projects, achievements, externalLinks } = data;
+
+  /* Adapt new SkillCategory type → TechnicalSkills prop shape */
+  const skillCategories = skills
+    .slice()
+    .sort((a, b) => a.order - b.order)
+    .map((c) => ({ category: c.name, skills: c.skills }));
+
+  /* Adapt new EducationEntry type → EducationSection prop shape */
+  const educationItems = education.map((e) => ({
+    degree: e.degree,
+    field: e.field,
+    institution: e.institution,
+    period: e.period,
+    location: e.location,
+    gpa: e.gpa,
+    coursework: e.coursework,
+  }));
+
+  /* Contact items from profile */
+  const contactItems = [
+    { type: "phone" as const,    value: profile.phone },
+    { type: "email" as const,    value: profile.email },
+    { type: "location" as const, value: profile.location },
+    { type: "college" as const,  value: profile.college },
+  ].filter((c) => c.value);
+
+  /* Social links — generic platform, label, url */
+  const socialItems = socialLinks.map((l) => ({
+    id: l.id,
+    platform: l.platform,
+    label: l.label,
+    url: l.url,
+  }));
+
+  return (
+    <main className="relative flex-1">
+      <AnimatedBackground />
+
+      <div className="container-page pt-8 pb-20">
+        <div className="max-w-4xl mx-auto space-y-8">
+
+          {/* ── Top bar: Photo | Name | ThemeToggle ── */}
+          <header className="flex items-center gap-4">
+            {/* Left — profile photo */}
+            <ProfilePhoto
+              name={profile.name}
+              src={profile.photo ?? undefined}
+              size={72}
+            />
+
+            {/* Center — name */}
+            <div className="flex-1 flex justify-center">
+              <h1
+                className="text-2xl sm:text-3xl font-semibold text-foreground text-center"
+                style={{ letterSpacing: "-0.025em" }}
+              >
+                {profile.name}
+              </h1>
+            </div>
+
+            {/* Right — theme toggle */}
+            <ThemeToggle />
+          </header>
+
+          {/* ── Contact ── */}
+          {contactItems.length > 0 && <ContactInfo items={contactItems} />}
+
+          {/* ── Social buttons ── */}
+          {socialItems.length > 0 && <SocialLinks links={socialItems} />}
+
+          {/* ── Divider ── */}
+          <div className="h-px bg-border" />
+
+          {/* ── Objective ── */}
+          {profile.objective && (
+            <ResumeSection title="Objective">
+              <Objective text={profile.objective} />
+            </ResumeSection>
+          )}
+
+          {/* ── Education ── */}
+          {educationItems.length > 0 && (
+            <ResumeSection title="Education" id="education">
+              <EducationSection items={educationItems} />
+            </ResumeSection>
+          )}
+
+          {/* ── Technical Skills ── */}
+          {skillCategories.length > 0 && (
+            <ResumeSection title="Technical Skills" id="skills">
+              <TechnicalSkills categories={skillCategories} />
+            </ResumeSection>
+          )}
+
+          {/* ── Projects carousel ── */}
+          {projects.length > 0 && (
+            <ResumeSection title="Projects" id="projects">
+              <ProjectCarousel projects={projects} />
+            </ResumeSection>
+          )}
+
+          {/* ── Achievements ── */}
+          {achievements.length > 0 && (
+            <ResumeSection title="Achievements">
+              <Achievements items={achievements} />
+            </ResumeSection>
+          )}
+
+          {/* ── External Links ── */}
+          {externalLinks.length > 0 && (
+            <ResumeSection title="External Links">
+              <ExternalLinks links={externalLinks} />
+            </ResumeSection>
+          )}
+
+        </div>
+      </div>
+    </main>
+  );
+}

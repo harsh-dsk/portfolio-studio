@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "./light-mode.css";
-import { Navbar } from "@/components/layout/Navbar";
 
 /* ── Fonts ── */
 const geistSans = Geist({
@@ -17,7 +16,7 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
-/* ── SEO Metadata ── */
+/* ── SEO ── */
 export const metadata: Metadata = {
   metadataBase: new URL("https://harshdeep.dev"),
   title: {
@@ -26,14 +25,7 @@ export const metadata: Metadata = {
   },
   description:
     "Portfolio of Harshdeep — a designer and developer crafting thoughtful digital products with care and precision.",
-  keywords: [
-    "portfolio",
-    "frontend developer",
-    "UI designer",
-    "product design",
-    "Next.js",
-    "React",
-  ],
+  keywords: ["portfolio", "frontend developer", "UI designer", "Next.js", "React"],
   authors: [{ name: "Harshdeep" }],
   creator: "Harshdeep",
   openGraph: {
@@ -41,20 +33,15 @@ export const metadata: Metadata = {
     locale: "en_US",
     siteName: "Harshdeep",
     title: "Harshdeep — Designer & Developer",
-    description:
-      "Portfolio of Harshdeep — a designer and developer crafting thoughtful digital products.",
+    description: "Portfolio of Harshdeep — a designer and developer crafting thoughtful digital products.",
   },
   twitter: {
     card: "summary_large_image",
     title: "Harshdeep — Designer & Developer",
-    description:
-      "Portfolio of Harshdeep — a designer and developer crafting thoughtful digital products.",
+    description: "Portfolio of Harshdeep — a designer and developer crafting thoughtful digital products.",
     creator: "@harshdeep",
   },
-  robots: {
-    index: true,
-    follow: true,
-  },
+  robots: { index: true, follow: true },
 };
 
 export const viewport: Viewport = {
@@ -72,15 +59,13 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      // Class is set dynamically by the inline script below (dark or light)
       className={`${geistSans.variable} ${geistMono.variable}`}
       suppressHydrationWarning
     >
       <head>
         {/*
          * Theme restoration — runs synchronously before first paint.
-         * Reads localStorage and applies "dark" or "light" class.
-         * Prevents flash of unstyled content on page load.
+         * Reads localStorage and applies "dark" or "light" class to <html>.
          */}
         <script
           dangerouslySetInnerHTML={{
@@ -92,9 +77,8 @@ export default function RootLayout({
         className="min-h-dvh flex flex-col bg-background text-foreground antialiased"
         suppressHydrationWarning
       >
-        <Navbar />
+        {/* Navbar removed — public portfolio has its own inline header */}
         {children}
-        {/* Footer — will be redesigned in a later session */}
       </body>
     </html>
   );
