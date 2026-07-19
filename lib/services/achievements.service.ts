@@ -83,3 +83,20 @@ export async function deleteAchievement(id: string): Promise<void> {
 
   if (error) throw new Error(`Failed to delete achievement: ${error.message}`)
 }
+
+export async function reorderAchievements(achievements: Achievement[]): Promise<void> {
+  const supabase = createClient()
+  const ownerId = await getOwnerId()
+
+  const updates = achievements.map((a, index) =>
+    supabase
+      .from('achievements')
+      .update({ sort_order: index })
+      .eq('id', a.id)
+      .eq('profile_id', ownerId)
+  )
+
+  const results = await Promise.all(updates)
+  const error = results.find(r => r.error)?.error
+  if (error) throw new Error(`Failed to reorder achievements: ${error.message}`)
+}

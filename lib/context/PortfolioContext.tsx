@@ -30,8 +30,9 @@ import {
 } from "@/lib/services/social-links.service";
 import {
   addEducation as addEducationSvc,
-  updateEducation as updateEducationSvc, // unused in context currently based on provided types but imported anyway
+  updateEducation as updateEducationSvc,
   deleteEducation as deleteEducationSvc,
+  reorderEducation as reorderEducationSvc,
 } from "@/lib/services/education.service";
 import {
   addSkillCategory as addSkillCategorySvc,
@@ -52,11 +53,13 @@ import {
   addAchievement as addAchievementSvc,
   updateAchievement as updateAchievementSvc,
   deleteAchievement as deleteAchievementSvc,
+  reorderAchievements as reorderAchievementsSvc,
 } from "@/lib/services/achievements.service";
 import {
   addExternalLink as addExternalLinkSvc,
-  updateExternalLink as updateExternalLinkSvc, // unused in context currently but imported
+  updateExternalLink as updateExternalLinkSvc,
   deleteExternalLink as deleteExternalLinkSvc,
+  reorderExternalLinks as reorderExternalLinksSvc,
 } from "@/lib/services/external-links.service";
 import { getFullPortfolioClient } from "@/lib/services/portfolio-client.service";
 
@@ -195,6 +198,16 @@ export function PortfolioProvider({
     }));
     deleteEducationSvc(id).catch((err) => {
       console.error("[PortfolioContext] deleteEducation failed:", err);
+    });
+  }, []);
+
+  const reorderEducation = useCallback((entries: EducationEntry[]) => {
+    setData((prev) => {
+      reorderEducationSvc(entries).catch((err) => {
+        console.error("[PortfolioContext] reorderEducation failed:", err);
+        setData((p) => ({ ...p, education: prev.education }));
+      });
+      return { ...prev, education: entries };
     });
   }, []);
 
@@ -421,6 +434,16 @@ export function PortfolioProvider({
     });
   }, []);
 
+  const reorderAchievements = useCallback((achievements: Achievement[]) => {
+    setData((prev) => {
+      reorderAchievementsSvc(achievements).catch((err) => {
+        console.error("[PortfolioContext] reorderAchievements failed:", err);
+        setData((p) => ({ ...p, achievements: prev.achievements }));
+      });
+      return { ...prev, achievements };
+    });
+  }, []);
+
   /* ── External Links ─────────────────────────────────────────────────── */
   const addExternalLink = useCallback((l: Omit<ExternalLink, "id">) => {
     const tempId = `temp-${Date.now()}`;
@@ -453,6 +476,16 @@ export function PortfolioProvider({
     }));
     deleteExternalLinkSvc(id).catch((err) => {
       console.error("[PortfolioContext] deleteExternalLink failed:", err);
+    });
+  }, []);
+
+  const reorderExternalLinks = useCallback((links: ExternalLink[]) => {
+    setData((prev) => {
+      reorderExternalLinksSvc(links).catch((err) => {
+        console.error("[PortfolioContext] reorderExternalLinks failed:", err);
+        setData((p) => ({ ...p, externalLinks: prev.externalLinks }));
+      });
+      return { ...prev, externalLinks: links };
     });
   }, []);
 
@@ -491,6 +524,7 @@ export function PortfolioProvider({
     reorderSocialLinks,
     addEducation,
     deleteEducation,
+    reorderEducation,
     addSkillCategory,
     renameSkillCategory,
     deleteSkillCategory,
@@ -505,8 +539,10 @@ export function PortfolioProvider({
     addAchievement,
     updateAchievement,
     deleteAchievement,
+    reorderAchievements,
     addExternalLink,
     deleteExternalLink,
+    reorderExternalLinks,
     addMediaItem,
     deleteMediaItem,
   };

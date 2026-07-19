@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { Plus, Pencil, Trash2, GripVertical, X, Check } from "lucide-react";
+import { useState } from "react";
+import { Plus, Pencil, Trash2, X, Check } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { FormField } from "@/components/admin/FormField";
 import { usePortfolio } from "@/lib/context/PortfolioContext";
+import { SortableList, SortableItem, SortableHandle } from "@/components/admin/SortableList";
 import type { SocialLink } from "@/lib/types";
 
 /* ── Platform icon SVGs ── */
@@ -58,25 +59,6 @@ export default function SocialPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showAdd, setShowAdd]     = useState(false);
   const [newLink, setNewLink]     = useState({ platform: "github", label: "", url: "" });
-  const [dragIndex, setDragIndex] = useState<number | null>(null);
-  const dragOver = useRef<number | null>(null);
-
-  /* ── DnD handlers ── */
-  const handleDragStart = (i: number) => setDragIndex(i);
-  const handleDragOver = (e: React.DragEvent, i: number) => {
-    e.preventDefault();
-    dragOver.current = i;
-  };
-  const handleDrop = () => {
-    if (dragIndex === null || dragOver.current === null || dragIndex === dragOver.current) return;
-    const next = [...links];
-    const [moved] = next.splice(dragIndex, 1);
-    next.splice(dragOver.current, 0, moved);
-    reorderSocialLinks(next);
-    setDragIndex(null);
-    dragOver.current = null;
-  };
-  const handleDragEnd = () => { setDragIndex(null); dragOver.current = null; };
 
   const handleAdd = () => {
     if (!newLink.label.trim() || !newLink.url.trim()) return;
@@ -98,69 +80,54 @@ export default function SocialPage() {
       />
 
       {/* ── List ── */}
-      <div className="rounded-xl border border-border bg-surface-1 overflow-hidden divide-y divide-border">
-        {links.length === 0 && (
-          <p className="px-5 py-10 text-center text-sm text-fg-subtle">
-            No social buttons yet. Click "Add Button" to add one.
-          </p>
-        )}
-
-        {links.map((link, i) => (
-          <div
-            key={link.id}
-            draggable
-            onDragStart={() => handleDragStart(i)}
-            onDragOver={(e) => handleDragOver(e, i)}
-            onDrop={handleDrop}
-            onDragEnd={handleDragEnd}
-            className="transition-opacity duration-100"
-            style={{ opacity: dragIndex === i ? 0.4 : 1 }}
-          >
-            {editingId === link.id ? (
-              <div className="p-3">
-                <EditForm
-                  link={link}
-                  onSave={(updates) => { updateSocialLink(link.id, updates); setEditingId(null); }}
-                  onCancel={() => setEditingId(null)}
-                />
-              </div>
-            ) : (
-              <div className="flex items-center gap-3 px-4 py-3.5">
-                {/* Drag handle */}
-                <span className="text-fg-subtle cursor-grab active:cursor-grabbing shrink-0" title="Drag to reorder">
-                  <GripVertical size={15} strokeWidth={1.75} />
-                </span>
-                {/* Icon */}
-                <span className="text-fg-muted shrink-0">
-                  <PlatformIcon platform={link.platform} />
-                </span>
-                {/* Info */}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground">{link.label}</p>
-                  <p className="text-xs text-fg-subtle truncate">{link.url}</p>
+      {links.length === 0 ? (
+        <div className="rounded-xl border border-border bg-surface-1 px-5 py-10 text-center text-sm text-fg-subtle">
+          No social buttons yet. Click "Add Button" to add one.
+        </div>
+      ) : (
+        <SortableList items={links} onReorder={reorderSocialLinks} className="rounded-xl border border-border bg-surface-1 overflow-hidden divide-y divide-border">
+          {links.map((link) => (
+            <SortableItem key={link.id} id={link.id} className="bg-surface-1">
+              {editingId === link.id ? (
+                <div className="p-3">
+                  <EditForm
+                    link={link}
+                    onSave={(updates) => { updateSocialLink(link.id, updates); setEditingId(null); }}
+                    onCancel={() => setEditingId(null)}
+                  />
                 </div>
-                {/* Actions */}
-                <div className="flex items-center gap-1 shrink-0">
-                  <button
-                    onClick={() => setEditingId(link.id)}
-                    className="p-1.5 rounded-md text-fg-subtle hover:text-foreground hover:bg-surface-2 transition-all"
-                    title="Edit"
-                  >
-                    <Pencil size={13} strokeWidth={1.75} />
-                  </button>
-                  <button
-                    onClick={() => deleteSocialLink(link.id)}
-                    className="p-1.5 rounded-md text-fg-subtle hover:text-[oklch(0.65_0.22_27)] hover:bg-[oklch(0.65_0.22_27_/_8%)] transition-all"
-                    title="Delete"
-                  >
-                    <Trash2 size={13} strokeWidth={1.75} />
-                  </button>
+              ) : (
+                <div className="flex items-center gap-3 px-4 py-3.5">
+                  <SortableHandle />
+                  <span className="text-fg-muted shrink-0">
+                    <PlatformIcon platform={link.platform} />
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground">{link.label}</p>
+                    <p className="text-xs text-fg-subtle truncate">{link.url}</p>
+                  </div>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      onClick={() => setEditingId(link.id)}
+                      className="p-1.5 rounded-md text-fg-subtle hover:text-foreground hover:bg-surface-2 transition-all"
+                      title="Edit"
+                    >
+                      <Pencil size={13} strokeWidth={1.75} />
+                    </button>
+                    <button
+                      onClick={() => deleteSocialLink(link.id)}
+                      className="p-1.5 rounded-md text-fg-subtle hover:text-[oklch(0.65_0.22_27)] hover:bg-[oklch(0.65_0.22_27_/_8%)] transition-all"
+                      title="Delete"
+                    >
+                      <Trash2 size={13} strokeWidth={1.75} />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
+              )}
+            </SortableItem>
+          ))}
+        </SortableList>
+      )}
 
       {/* ── Add form ── */}
       {showAdd && (

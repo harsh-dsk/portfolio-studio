@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useRef } from "react";
-import {
-  Plus, Pencil, Trash2, GripVertical, X, Check, ChevronUp, ChevronDown,
-} from "lucide-react";
+import { useState } from "react";
+import { Plus, Pencil, Trash2, X, Check } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { usePortfolio } from "@/lib/context/PortfolioContext";
+import { SortableList, SortableItem, SortableHandle } from "@/components/admin/SortableList";
 import type { SkillCategory } from "@/lib/types";
 
 /* ── Per-category accent palette (same as public portfolio) ── */
@@ -25,26 +24,13 @@ function accent(idx: number) { return PALETTE[idx % PALETTE.length]; }
 function CategoryCard({
   category,
   index,
-  totalCategories,
-  onDragStart,
-  onDragOver,
-  onDrop,
-  onDragEnd,
-  isDragging,
 }: {
   category: SkillCategory;
   index: number;
-  totalCategories: number;
-  onDragStart: (i: number) => void;
-  onDragOver: (e: React.DragEvent, i: number) => void;
-  onDrop: () => void;
-  onDragEnd: () => void;
-  isDragging: boolean;
 }) {
   const {
     renameSkillCategory, deleteSkillCategory,
-    addSkill, removeSkill, reorderSkillsInCategory, reorderSkillCategories,
-    data,
+    addSkill, removeSkill, reorderSkillsInCategory,
   } = usePortfolio();
 
   const [renaming, setRenaming] = useState(false);
@@ -65,51 +51,17 @@ function CategoryCard({
     setSkillInput("");
   };
 
-  /* Skill DnD — within this category */
-  const skillDragIdx = useRef<number | null>(null);
-  const skillDragOver = useRef<number | null>(null);
+  const skillItems = category.skills.map((name) => ({ id: name, name }));
 
-  const handleSkillDragStart = (i: number) => { skillDragIdx.current = i; };
-  const handleSkillDragOver  = (e: React.DragEvent, i: number) => {
-    e.preventDefault();
-    skillDragOver.current = i;
-  };
-  const handleSkillDrop = () => {
-    const from = skillDragIdx.current;
-    const to   = skillDragOver.current;
-    if (from === null || to === null || from === to) return;
-    const newSkills = [...category.skills];
-    const [moved] = newSkills.splice(from, 1);
-    newSkills.splice(to, 0, moved);
-    reorderSkillsInCategory(category.id, newSkills);
-    skillDragIdx.current  = null;
-    skillDragOver.current = null;
-  };
-
-  /* Move skill up/down */
-  const moveSkill = (i: number, dir: "up" | "down") => {
-    const skills = [...category.skills];
-    const swap = dir === "up" ? i - 1 : i + 1;
-    if (swap < 0 || swap >= skills.length) return;
-    [skills[i], skills[swap]] = [skills[swap], skills[i]];
-    reorderSkillsInCategory(category.id, skills);
+  const handleSkillReorder = (newItems: { id: string; name: string }[]) => {
+    reorderSkillsInCategory(category.id, newItems.map((item) => item.name));
   };
 
   return (
-    <div
-      draggable
-      onDragStart={() => onDragStart(index)}
-      onDragOver={(e) => onDragOver(e, index)}
-      onDrop={onDrop}
-      onDragEnd={onDragEnd}
-      className="rounded-xl border border-border bg-surface-1 overflow-hidden transition-opacity duration-100"
-      style={{ opacity: isDragging ? 0.4 : 1 }}
-    >
+    <SortableItem id={category.id} className="rounded-xl border border-border bg-surface-1 overflow-hidden">
       {/* Category header */}
       <div className="flex items-center gap-3 px-4 py-3.5 border-b border-border">
-        <span className="text-fg-subtle cursor-grab active:cursor-grabbing shrink-0" title="Drag to reorder category">
-          <GripVertical size={15} strokeWidth={1.75} />
-        </span>
+        <SortableHandle />
         <span className="w-2 h-2 rounded-full shrink-0" style={{ background: accent(index) }} />
 
         {renaming ? (
@@ -145,28 +97,19 @@ function CategoryCard({
       <div className="p-4 space-y-3">
         {/* Skill chips */}
         {category.skills.length > 0 ? (
-          <div className="flex flex-wrap gap-2">
-            {category.skills.map((skill, si) => (
-              <div
-                key={skill}
-                draggable
-                onDragStart={() => handleSkillDragStart(si)}
-                onDragOver={(e) => handleSkillDragOver(e, si)}
-                onDrop={handleSkillDrop}
-                onDragEnd={() => { skillDragIdx.current = null; skillDragOver.current = null; }}
-                className="group flex items-center gap-1 pl-2.5 pr-1 h-7 text-xs rounded-lg border border-border bg-surface-2 text-fg-muted cursor-grab active:cursor-grabbing transition-all"
-                title="Drag to reorder"
+          <SortableList items={skillItems} onReorder={handleSkillReorder} layout="horizontal" className="flex flex-wrap gap-2">
+            {skillItems.map((item) => (
+              <SortableItem
+                key={item.id}
+                id={item.id}
+                className="group flex items-center gap-1 pl-1 pr-1 h-7 text-xs rounded-lg border border-border bg-surface-2 text-fg-muted"
               >
-                <GripVertical size={10} strokeWidth={2} className="text-fg-subtle shrink-0" />
-                {skill}
-                <div className="flex items-center gap-0.5 ml-1">
-                  <button onClick={() => moveSkill(si, "up")} disabled={si === 0} className="p-0.5 rounded text-fg-subtle hover:text-foreground disabled:opacity-20 transition-colors" title="Move up" aria-label={`Move ${skill} up`}><ChevronUp size={10} strokeWidth={2.5} /></button>
-                  <button onClick={() => moveSkill(si, "down")} disabled={si === category.skills.length - 1} className="p-0.5 rounded text-fg-subtle hover:text-foreground disabled:opacity-20 transition-colors" title="Move down" aria-label={`Move ${skill} down`}><ChevronDown size={10} strokeWidth={2.5} /></button>
-                  <button onClick={() => removeSkill(category.id, skill)} className="p-0.5 rounded text-fg-subtle hover:text-[oklch(0.65_0.22_27)] transition-colors" aria-label={`Remove ${skill}`}><X size={11} strokeWidth={2} /></button>
-                </div>
-              </div>
+                <SortableHandle iconSize={10} />
+                <span className="pr-1">{item.name}</span>
+                <button onClick={() => removeSkill(category.id, item.name)} className="p-0.5 rounded text-fg-subtle hover:text-[oklch(0.65_0.22_27)] transition-colors" aria-label={`Remove ${item.name}`}><X size={11} strokeWidth={2} /></button>
+              </SortableItem>
             ))}
-          </div>
+          </SortableList>
         ) : (
           <p className="text-xs text-fg-subtle">No skills yet. Add one below.</p>
         )}
@@ -189,39 +132,15 @@ function CategoryCard({
           </button>
         </div>
       </div>
-    </div>
+    </SortableItem>
   );
 }
 
 /* ── Page ── */
 export default function SkillsPage() {
   const { data, addSkillCategory, reorderSkillCategories } = usePortfolio();
+  const categories = data.skills;
 
-  /* Sort by order */
-  const categories = data.skills.slice().sort((a, b) => a.order - b.order);
-
-  /* Category DnD */
-  const dragIdx  = useRef<number | null>(null);
-  const dragOver = useRef<number | null>(null);
-  const [draggingIdx, setDraggingIdx] = useState<number | null>(null);
-
-  const handleCatDragStart = (i: number) => { dragIdx.current = i; setDraggingIdx(i); };
-  const handleCatDragOver  = (e: React.DragEvent, i: number) => { e.preventDefault(); dragOver.current = i; };
-  const handleCatDrop = () => {
-    const from = dragIdx.current;
-    const to   = dragOver.current;
-    if (from === null || to === null || from === to) return;
-    const next = [...categories];
-    const [moved] = next.splice(from, 1);
-    next.splice(to, 0, moved);
-    reorderSkillCategories(next);
-    dragIdx.current  = null;
-    dragOver.current = null;
-    setDraggingIdx(null);
-  };
-  const handleCatDragEnd = () => { dragIdx.current = null; dragOver.current = null; setDraggingIdx(null); };
-
-  /* Add category */
   const [addingCategory, setAddingCategory] = useState(false);
   const [newCatName, setNewCatName]          = useState("");
 
@@ -267,21 +186,15 @@ export default function SkillsPage() {
           <button onClick={() => setAddingCategory(true)} className="text-sm text-brand hover:text-brand-hover transition-colors">+ Add your first category</button>
         </div>
       ) : (
-        <div className="space-y-4">
+        <SortableList items={categories} onReorder={reorderSkillCategories} className="space-y-4">
           {categories.map((cat, idx) => (
             <CategoryCard
               key={cat.id}
               category={cat}
               index={idx}
-              totalCategories={categories.length}
-              onDragStart={handleCatDragStart}
-              onDragOver={handleCatDragOver}
-              onDrop={handleCatDrop}
-              onDragEnd={handleCatDragEnd}
-              isDragging={draggingIdx === idx}
             />
           ))}
-        </div>
+        </SortableList>
       )}
 
       <p className="text-xs text-fg-subtle px-1">

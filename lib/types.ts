@@ -142,6 +142,7 @@ export interface PortfolioContextValue {
   /* ── Education ── */
   addEducation: (entry: Omit<EducationEntry, "id">) => void;
   deleteEducation: (id: string) => void;
+  reorderEducation: (entries: EducationEntry[]) => void;
 
   /* ── Skills — categories ── */
   addSkillCategory: (name: string) => void;
@@ -163,10 +164,12 @@ export interface PortfolioContextValue {
   addAchievement: (a: Omit<Achievement, "id">) => void;
   updateAchievement: (id: string, updates: Partial<Omit<Achievement, "id">>) => void;
   deleteAchievement: (id: string) => void;
+  reorderAchievements: (achievements: Achievement[]) => void;
 
   /* ── External Links ── */
   addExternalLink: (l: Omit<ExternalLink, "id">) => void;
   deleteExternalLink: (id: string) => void;
+  reorderExternalLinks: (links: ExternalLink[]) => void;
 
   /* ── Media ── */
   addMediaItem: (item: Omit<MediaItem, "id" | "uploadedAt">) => void;

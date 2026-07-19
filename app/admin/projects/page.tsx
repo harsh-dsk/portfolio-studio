@@ -7,6 +7,7 @@ import { FormField } from '@/components/admin/FormField'
 import { usePortfolio } from '@/lib/context/PortfolioContext'
 import { uploadProjectImage, addProjectImage } from '@/lib/services/projects.service'
 import type { Project } from '@/lib/types'
+import { SortableList, SortableItem, SortableHandle } from '@/components/admin/SortableList'
 
 function MiniPlaceholder({ project }: { project: Project }) {
   const from = project.placeholder?.from || 'oklch(0.15 0.04 250)'
@@ -49,7 +50,7 @@ function MiniPlaceholder({ project }: { project: Project }) {
 }
 
 export default function ProjectsPage() {
-  const { data, addProject, updateProject, deleteProject } = usePortfolio()
+  const { data, addProject, updateProject, deleteProject, reorderProjects } = usePortfolio()
   const projects = data.projects
 
   const [showAdd, setShowAdd] = useState(false)
@@ -132,14 +133,15 @@ export default function ProjectsPage() {
       />
 
       {/* Project cards grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <SortableList items={projects} onReorder={reorderProjects} layout="grid" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {projects.map((project) => (
-          <div
+          <SortableItem
             key={project.id}
+            id={project.id}
             className="rounded-xl border border-border bg-surface-1 overflow-hidden flex flex-col"
           >
             {/* Screenshot */}
-            <div className="p-3 pb-0">
+            <div className="p-3 pb-0 relative">
               <MiniPlaceholder project={project} />
             </div>
 
@@ -147,6 +149,7 @@ export default function ProjectsPage() {
             <div className="p-4 space-y-2.5 flex-1 flex flex-col">
               <div className="flex items-start justify-between gap-2">
                 <p className="text-sm font-semibold text-foreground leading-snug">{project.title}</p>
+                <SortableHandle />
               </div>
 
               <p className="text-xs text-fg-muted line-clamp-2 leading-relaxed">{project.shortDescription}</p>
@@ -203,9 +206,9 @@ export default function ProjectsPage() {
                 )}
               </div>
             </div>
-          </div>
+          </SortableItem>
         ))}
-      </div>
+      </SortableList>
 
       {/* Add project form */}
       {showAdd && (

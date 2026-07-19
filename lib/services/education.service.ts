@@ -103,3 +103,20 @@ export async function deleteEducation(id: string): Promise<void> {
 
   if (error) throw new Error(`Failed to delete education: ${error.message}`)
 }
+
+export async function reorderEducation(entries: EducationEntry[]): Promise<void> {
+  const supabase = createClient()
+  const ownerId = await getOwnerId()
+
+  const updates = entries.map((entry, index) =>
+    supabase
+      .from('education')
+      .update({ sort_order: index })
+      .eq('id', entry.id)
+      .eq('profile_id', ownerId)
+  )
+
+  const results = await Promise.all(updates)
+  const error = results.find(r => r.error)?.error
+  if (error) throw new Error(`Failed to reorder education: ${error.message}`)
+}

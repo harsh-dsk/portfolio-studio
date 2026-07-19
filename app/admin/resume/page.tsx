@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { AlignLeft, Columns, PanelLeft, Download, Cpu, CheckCircle } from 'lucide-react'
 import { PageHeader } from '@/components/admin/PageHeader'
 import { usePortfolio } from '@/lib/context/PortfolioContext'
-import { upsertResumeSettings } from '@/lib/services/resume.service'
+import { getResumeSettings, upsertResumeSettings } from '@/lib/services/resume.service'
+import { PrintableResume } from '@/components/admin/PrintableResume'
 
 /* ── Resume template definitions ── */
 const TEMPLATES = [
@@ -83,7 +84,18 @@ function TemplateMiniPreview({
 
 export default function ResumePage() {
   const { data } = usePortfolio()
-  const [selectedTemplate, setSelectedTemplate] = useState<string | null>('modern')
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('modern')
+  const [isGenerating, setIsGenerating] = useState(false)
+
+  useEffect(() => {
+    getResumeSettings()
+      .then((settings) => {
+        if (settings?.selectedTemplate && settings.selectedTemplate !== 'default') {
+          setSelectedTemplate(settings.selectedTemplate)
+        }
+      })
+      .catch(console.error)
+  }, [])
 
   const name = data.profile.name
   const projectCount = data.projects.length
@@ -94,56 +106,19 @@ export default function ResumePage() {
     upsertResumeSettings(id).catch(console.error)
   }
 
+  const handleGenerateResume = () => {
+    setIsGenerating(true)
+    // Allow React state updates and DOM paint to complete before opening print dialog
+    setTimeout(() => {
+      window.print()
+      setIsGenerating(false)
+    }, 150)
+  }
+
   return (
     <>
-      {/* Print-only resume */}
-      <div id="resume-print-area" style={{ display: 'none' }}>
-        <style>{`
-          @media print {
-            body > * { display: none !important; }
-            #resume-print-area { display: block !important; }
-            @page { margin: 1in; }
-          }
-        `}</style>
-        <h1>{data.profile.name}</h1>
-        <p>{data.profile.title}</p>
-        <p>{data.profile.email} | {data.profile.phone} | {data.profile.location}</p>
-        <hr />
-        <h2>Objective</h2>
-        <p>{data.profile.objective}</p>
-        <h2>Education</h2>
-        {data.education.map(e => (
-          <div key={e.id}>
-            <strong>{e.institution}</strong> — {e.degree} in {e.field} ({e.period})
-            {e.gpa && <span> | GPA: {e.gpa}</span>}
-          </div>
-        ))}
-        <h2>Technical Skills</h2>
-        {data.skills.map(cat => (
-          <div key={cat.id}><strong>{cat.name}:</strong> {cat.skills.join(', ')}</div>
-        ))}
-        <h2>Projects</h2>
-        {data.projects.map(p => (
-          <div key={p.id} style={{ marginBottom: '12px' }}>
-            <strong>{p.title}</strong>{p.liveUrl && <span> | <a href={p.liveUrl}>{p.liveUrl}</a></span>}{p.githubUrl && <span> | <a href={p.githubUrl}>GitHub</a></span>}
-            <br />
-            <em>{p.techStack.join(', ')}</em>
-            <p>{p.shortDescription}</p>
-          </div>
-        ))}
-        <h2>Achievements</h2>
-        {data.achievements.map(a => (
-          <div key={a.id}><strong>{a.title}</strong>{a.date && <span> ({a.date})</span>}<p>{a.description}</p></div>
-        ))}
-        {data.externalLinks.length > 0 && (
-          <>
-            <h2>Links</h2>
-            {data.externalLinks.map(l => (
-              <div key={l.id}><a href={l.url}>{l.label}</a>{l.description && <span> — {l.description}</span>}</div>
-            ))}
-          </>
-        )}
-      </div>
+      {/* Printable Resume Component */}
+      <PrintableResume data={data} template={selectedTemplate} />
 
       <div className="max-w-4xl space-y-6">
         <PageHeader
@@ -261,12 +236,12 @@ export default function ResumePage() {
                 <p className="text-xs text-fg-muted">Compile your portfolio data into a formatted PDF resume.</p>
               </div>
               <button
-                disabled={!selectedTemplate}
-                onClick={() => { if (selectedTemplate) window.print() }}
+                disabled={!selectedTemplate || isGenerating}
+                onClick={handleGenerateResume}
                 className="w-full h-9 flex items-center justify-center gap-2 text-sm font-medium rounded-lg bg-brand text-brand-fg transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed hover:bg-brand-hover"
               >
                 <Cpu size={14} strokeWidth={1.75} />
-                {selectedTemplate ? 'Generate Resume' : 'Select a template first'}
+                {isGenerating ? 'Preparing Print...' : selectedTemplate ? 'Generate Resume' : 'Select a template first'}
               </button>
               <p className="text-[11px] text-fg-subtle text-center">Opens the print dialog. Save as PDF to download.</p>
             </div>

@@ -83,3 +83,20 @@ export async function deleteExternalLink(id: string): Promise<void> {
 
   if (error) throw new Error(`Failed to delete external link: ${error.message}`)
 }
+
+export async function reorderExternalLinks(links: ExternalLink[]): Promise<void> {
+  const supabase = createClient()
+  const ownerId = await getOwnerId()
+
+  const updates = links.map((link, index) =>
+    supabase
+      .from('external_links')
+      .update({ sort_order: index })
+      .eq('id', link.id)
+      .eq('profile_id', ownerId)
+  )
+
+  const results = await Promise.all(updates)
+  const error = results.find(r => r.error)?.error
+  if (error) throw new Error(`Failed to reorder external links: ${error.message}`)
+}
