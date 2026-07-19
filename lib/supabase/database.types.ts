@@ -303,7 +303,9 @@ export type Database = {
           id: string
           project_id: string
           url: string
+          storage_path: string | null
           alt_text: string
+          is_cover: boolean
           sort_order: number
           created_at: string
         }
@@ -311,7 +313,9 @@ export type Database = {
           id?: string
           project_id: string
           url: string
+          storage_path?: string | null
           alt_text?: string
+          is_cover?: boolean
           sort_order?: number
           created_at?: string
         }
@@ -319,7 +323,9 @@ export type Database = {
           id?: string
           project_id?: string
           url?: string
+          storage_path?: string | null
           alt_text?: string
+          is_cover?: boolean
           sort_order?: number
           created_at?: string
         }
@@ -426,6 +432,10 @@ export type Database = {
           id: string
           profile_id: string
           selected_template: string
+          resume_mode: string
+          resume_pdf_url: string | null
+          resume_storage_path: string | null
+          uploaded_at: string | null
           created_at: string
           updated_at: string
         }
@@ -433,6 +443,10 @@ export type Database = {
           id?: string
           profile_id: string
           selected_template?: string
+          resume_mode?: string
+          resume_pdf_url?: string | null
+          resume_storage_path?: string | null
+          uploaded_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -440,6 +454,10 @@ export type Database = {
           id?: string
           profile_id?: string
           selected_template?: string
+          resume_mode?: string
+          resume_pdf_url?: string | null
+          resume_storage_path?: string | null
+          uploaded_at?: string | null
           created_at?: string
           updated_at?: string
         }

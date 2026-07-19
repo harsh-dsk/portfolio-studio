@@ -68,6 +68,9 @@ export interface ProjectScreenshot {
   /** Absolute URL or null — null renders the gradient placeholder */
   url: string | null;
   alt: string;
+  storagePath?: string;
+  isCover?: boolean;
+  sortOrder?: number;
 }
 
 export interface ProjectPlaceholder {
@@ -90,6 +93,7 @@ export interface Project {
   placeholder: ProjectPlaceholder;
   isVisible?: boolean;
   includeInResume?: boolean;
+  coverImage?: string | null;
 }
 
 /* ── Achievements ── */
@@ -110,6 +114,16 @@ export interface ExternalLink {
   description?: string;
   isVisible?: boolean;
   includeInResume?: boolean;
+}
+
+/* ── Resume Settings ── */
+export interface ResumeSettings {
+  id?: string;
+  selectedTemplate: string;
+  resumeMode: 'dynamic' | 'uploaded';
+  resumePdfUrl?: string | null;
+  resumeStoragePath?: string | null;
+  uploadedAt?: string | null;
 }
 
 /* ── Media Library ── */
@@ -135,6 +149,7 @@ export interface PortfolioData {
   projects: Project[];
   achievements: Achievement[];
   externalLinks: ExternalLink[];
+  resumeSettings?: ResumeSettings;
   media: MediaItem[];
 }
 
@@ -180,6 +195,9 @@ export interface PortfolioContextValue {
   reorderProjects: (projects: Project[]) => void;
   toggleProjectVisibility: (id: string, isVisible: boolean) => void;
   toggleProjectResume: (id: string, includeInResume: boolean) => void;
+  setCoverImage: (projectId: string, imageId: string) => Promise<void>;
+  reorderProjectImages: (projectId: string, images: ProjectScreenshot[]) => Promise<void>;
+  deleteProjectImage: (projectId: string, imageId: string, storagePath?: string) => Promise<void>;
 
   /* ── Achievements ── */
   addAchievement: (a: Omit<Achievement, "id">) => void;
@@ -195,6 +213,9 @@ export interface PortfolioContextValue {
   reorderExternalLinks: (links: ExternalLink[]) => void;
   toggleExternalLinkVisibility: (id: string, isVisible: boolean) => void;
   toggleExternalLinkResume: (id: string, includeInResume: boolean) => void;
+
+  /* ── Resume Settings ── */
+  updateResumeSettings: (settings: Partial<ResumeSettings>) => Promise<void>;
 
   /* ── Media ── */
   addMediaItem: (item: Omit<MediaItem, "id" | "uploadedAt">) => void;

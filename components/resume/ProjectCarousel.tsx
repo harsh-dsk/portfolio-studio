@@ -8,6 +8,20 @@ import { cn } from "@/lib/utils";
 
 /* ── Card thumbnail ── */
 function CardThumbnail({ project }: { project: Project }) {
+  const coverImg = project.coverImage || project.screenshots?.find((img) => img.isCover && img.url)?.url || project.screenshots?.find((img) => img.url)?.url
+
+  if (coverImg) {
+    return (
+      <div className="w-full h-full relative overflow-hidden bg-surface-2">
+        <img
+          src={coverImg}
+          alt={project.title}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+        />
+      </div>
+    );
+  }
+
   const { from, to, accent } = project.placeholder;
   return (
     <div

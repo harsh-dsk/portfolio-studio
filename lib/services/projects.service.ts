@@ -13,28 +13,41 @@ export async function getProjects(): Promise<Project[]> {
 
   if (error) throw new Error(`Failed to get projects: ${error.message}`)
 
-  return data.map((d: any) => ({
-    id: d.id,
-    title: d.title,
-    shortDescription: d.short_description,
-    fullDescription: d.full_description,
-    techStack: d.tech_stack ?? [],
-    liveUrl: d.live_url ?? undefined,
-    githubUrl: d.github_url ?? undefined,
-    order: d.sort_order,
-    placeholder: {
-      from: d.placeholder_from,
-      to: d.placeholder_to,
-      accent: d.placeholder_accent
-    },
-    screenshots: (d.project_images || [])
+  return data.map((d: any) => {
+    const screenshots = (d.project_images || [])
       .sort((a: any, b: any) => a.sort_order - b.sort_order)
       .map((img: any) => ({
         id: img.id,
         url: img.url === '' ? null : img.url,
-        alt: img.alt_text
+        alt: img.alt_text,
+        storagePath: img.storage_path ?? undefined,
+        isCover: img.is_cover ?? false,
+        sortOrder: img.sort_order ?? 0,
       }))
-  }))
+
+    const coverObj = screenshots.find((img: any) => img.isCover && img.url) || screenshots.find((img: any) => img.url)
+    const coverImage = coverObj?.url ?? null
+
+    return {
+      id: d.id,
+      title: d.title,
+      shortDescription: d.short_description,
+      fullDescription: d.full_description,
+      techStack: d.tech_stack ?? [],
+      liveUrl: d.live_url ?? undefined,
+      githubUrl: d.github_url ?? undefined,
+      order: d.sort_order,
+      placeholder: {
+        from: d.placeholder_from,
+        to: d.placeholder_to,
+        accent: d.placeholder_accent
+      },
+      screenshots,
+      coverImage,
+      isVisible: d.is_visible ?? true,
+      includeInResume: d.include_in_resume ?? true,
+    }
+  })
 }
 
 export async function addProject(project: Omit<Project, 'id' | 'order'>, order: number): Promise<Project> {
@@ -138,26 +151,41 @@ export async function reorderProjects(projects: Project[]): Promise<void> {
   if (error) throw new Error(`Failed to reorder projects: ${error.message}`)
 }
 
-export async function uploadProjectImage(file: File, projectId: string): Promise<string> {
+export async function uploadProjectImage(file: File, projectId: string): Promise<{ publicUrl: string; storagePath: string }> {
   const supabase = createClient()
-  const ext = file.name.split('.').pop()
-  const path = `${projectId}/${Date.now()}.${ext}`
+  const ext = file.name.split('.').pop() || 'png'
+  const storagePath = `${projectId}/${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${ext}`
 
   const { error } = await supabase.storage
     .from('project-images')
-    .upload(path, file, { upsert: true })
+    .upload(storagePath, file, { upsert: true })
 
   if (error) throw new Error(`Failed to upload project image: ${error.message}`)
 
   const { data } = supabase.storage
     .from('project-images')
-    .getPublicUrl(path)
+    .getPublicUrl(storagePath)
 
-  return data.publicUrl
+  return { publicUrl: data.publicUrl, storagePath }
 }
 
-export async function addProjectImage(projectId: string, url: string, alt: string, sortOrder: number): Promise<ProjectScreenshot> {
+export async function addProjectImage(
+  projectId: string,
+  url: string,
+  alt: string = '',
+  sortOrder: number = 0,
+  storagePath?: string,
+  isCover: boolean = false
+): Promise<ProjectScreenshot> {
   const supabase = createClient()
+
+  // If set to cover, un-cover all other images for this project first
+  if (isCover) {
+    await supabase
+      .from('project_images')
+      .update({ is_cover: false })
+      .eq('project_id', projectId)
+  }
   
   const { data, error } = await supabase
     .from('project_images')
@@ -165,7 +193,9 @@ export async function addProjectImage(projectId: string, url: string, alt: strin
       project_id: projectId,
       url,
       alt_text: alt,
-      sort_order: sortOrder
+      sort_order: sortOrder,
+      storage_path: storagePath ?? null,
+      is_cover: isCover
     })
     .select()
     .single()
@@ -175,13 +205,59 @@ export async function addProjectImage(projectId: string, url: string, alt: strin
   return {
     id: data.id,
     url: data.url === '' ? null : data.url,
-    alt: data.alt_text
+    alt: data.alt_text,
+    storagePath: data.storage_path ?? undefined,
+    isCover: data.is_cover ?? false,
+    sortOrder: data.sort_order ?? 0
   }
 }
 
-export async function deleteProjectImage(imageId: string): Promise<void> {
+export async function setCoverImage(projectId: string, imageId: string): Promise<void> {
+  const supabase = createClient()
+
+  // Reset all cover flags for this project
+  const { error: resetError } = await supabase
+    .from('project_images')
+    .update({ is_cover: false })
+    .eq('project_id', projectId)
+
+  if (resetError) throw new Error(`Failed to reset cover images: ${resetError.message}`)
+
+  // Set the selected image as cover
+  const { error: setError } = await supabase
+    .from('project_images')
+    .update({ is_cover: true })
+    .eq('id', imageId)
+    .eq('project_id', projectId)
+
+  if (setError) throw new Error(`Failed to set cover image: ${setError.message}`)
+}
+
+export async function reorderProjectImages(projectId: string, imageIds: string[]): Promise<void> {
+  const supabase = createClient()
+
+  const updates = imageIds.map((id, index) =>
+    supabase
+      .from('project_images')
+      .update({ sort_order: index })
+      .eq('id', id)
+      .eq('project_id', projectId)
+  )
+
+  const results = await Promise.all(updates)
+  const error = results.find(r => r.error)?.error
+  if (error) throw new Error(`Failed to reorder project images: ${error.message}`)
+}
+
+export async function deleteProjectImage(imageId: string, storagePath?: string): Promise<void> {
   const supabase = createClient()
   
+  if (storagePath) {
+    await supabase.storage
+      .from('project-images')
+      .remove([storagePath])
+  }
+
   const { error } = await supabase
     .from('project_images')
     .delete()

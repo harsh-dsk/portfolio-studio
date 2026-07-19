@@ -15,9 +15,11 @@ import type {
   EducationEntry,
   SkillCategory,
   Project,
+  ProjectScreenshot,
   Achievement,
   ExternalLink,
   MediaItem,
+  ResumeSettings,
 } from "@/lib/types";
 
 // Import services
@@ -49,7 +51,11 @@ import {
   updateProject as updateProjectSvc,
   deleteProject as deleteProjectSvc,
   reorderProjects as reorderProjectsSvc,
+  setCoverImage as setCoverImageSvc,
+  reorderProjectImages as reorderProjectImagesSvc,
+  deleteProjectImage as deleteProjectImageSvc,
 } from "@/lib/services/projects.service";
+import { upsertResumeSettings as upsertResumeSettingsSvc } from "@/lib/services/resume.service";
 import {
   addAchievement as addAchievementSvc,
   updateAchievement as updateAchievementSvc,
@@ -682,6 +688,74 @@ export function PortfolioProvider({
     });
   }, []);
 
+  /* ── Project Image Gallery Callbacks ──────────────────────────────────── */
+  const setCoverImage = useCallback(async (projectId: string, imageId: string) => {
+    setData((prev) => ({
+      ...prev,
+      projects: prev.projects.map((p) => {
+        if (p.id !== projectId) return p;
+        const updatedScreenshots = p.screenshots.map((s) => ({
+          ...s,
+          isCover: s.id === imageId,
+        }));
+        const coverObj = updatedScreenshots.find((s) => s.isCover && s.url) || updatedScreenshots.find((s) => s.url);
+        return {
+          ...p,
+          screenshots: updatedScreenshots,
+          coverImage: coverObj?.url ?? null,
+        };
+      }),
+    }));
+    await setCoverImageSvc(projectId, imageId);
+  }, []);
+
+  const reorderProjectImages = useCallback(async (projectId: string, images: ProjectScreenshot[]) => {
+    setData((prev) => ({
+      ...prev,
+      projects: prev.projects.map((p) => {
+        if (p.id !== projectId) return p;
+        const coverObj = images.find((s) => s.isCover && s.url) || images.find((s) => s.url);
+        return {
+          ...p,
+          screenshots: images,
+          coverImage: coverObj?.url ?? null,
+        };
+      }),
+    }));
+    await reorderProjectImagesSvc(projectId, images.map((i) => i.id));
+  }, []);
+
+  const deleteProjectImage = useCallback(async (projectId: string, imageId: string, storagePath?: string) => {
+    setData((prev) => ({
+      ...prev,
+      projects: prev.projects.map((p) => {
+        if (p.id !== projectId) return p;
+        const updatedScreenshots = p.screenshots.filter((s) => s.id !== imageId);
+        const coverObj = updatedScreenshots.find((s) => s.isCover && s.url) || updatedScreenshots.find((s) => s.url);
+        return {
+          ...p,
+          screenshots: updatedScreenshots,
+          coverImage: coverObj?.url ?? null,
+        };
+      }),
+    }));
+    await deleteProjectImageSvc(imageId, storagePath);
+  }, []);
+
+  /* ── Resume Settings Callbacks ────────────────────────────────────────── */
+  const updateResumeSettings = useCallback(async (settings: Partial<ResumeSettings>) => {
+    setData((prev) => ({
+      ...prev,
+      resumeSettings: {
+        selectedTemplate: 'modern',
+        resumeMode: 'dynamic',
+        ...prev.resumeSettings,
+        ...settings,
+      },
+    }));
+    await upsertResumeSettingsSvc(settings);
+  }, []);
+
   /* ── Assemble context value ─────────────────────────────────────────── */
   const value: ExtendedPortfolioContextValue = {
     data,
@@ -714,6 +788,9 @@ export function PortfolioProvider({
     reorderProjects,
     toggleProjectVisibility,
     toggleProjectResume,
+    setCoverImage,
+    reorderProjectImages,
+    deleteProjectImage,
     addAchievement,
     updateAchievement,
     deleteAchievement,
@@ -725,6 +802,7 @@ export function PortfolioProvider({
     reorderExternalLinks,
     toggleExternalLinkVisibility,
     toggleExternalLinkResume,
+    updateResumeSettings,
     addMediaItem,
     deleteMediaItem,
   };

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ExternalLink, GitBranch } from "lucide-react";
 import type { Project } from "@/lib/types";
@@ -40,7 +40,7 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
           <motion.div
             key="modal-backdrop"
             className="fixed inset-0 z-[60]"
-            style={{ background: "oklch(0 0 0 / 80%)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)" }}
+            style={{ background: "oklch(0 0 0 / 85%)", backdropFilter: "blur(8px)", WebkitBackdropFilter: "blur(8px)" }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -49,61 +49,57 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
             aria-hidden="true"
           />
 
-          {/* ── Modal ── */}
+          {/* ── Modal Panel ── */}
           <motion.div
             key="modal-panel"
             role="dialog"
             aria-modal="true"
             aria-label={project.title}
-            className="fixed z-[61] flex flex-col lg:flex-row overflow-hidden rounded-2xl"
+            className="fixed z-[61] flex flex-col lg:flex-row overflow-hidden rounded-2xl border border-border bg-surface-0 shadow-2xl"
             style={{
-              inset: "clamp(16px, 4vw, 48px)",
-              background: "var(--ds-surface-0)",
-              border: "1px solid var(--ds-border)",
-              boxShadow: "0 32px 80px oklch(0 0 0 / 60%)",
+              inset: "clamp(16px, 3.5vw, 40px)",
             }}
-            initial={{ opacity: 0, scale: 0.94, y: 8 }}
+            initial={{ opacity: 0, scale: 0.95, y: 8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.96, y: 4 }}
+            exit={{ opacity: 0, scale: 0.97, y: 4 }}
             transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
           >
             {/* ── Close button ── */}
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 z-10 w-8 h-8 flex items-center justify-center rounded-full transition-all duration-150 text-fg-muted hover:text-foreground"
-              style={{ background: "var(--ds-surface-2)" }}
+              className="absolute top-4 right-4 z-20 w-8 h-8 flex items-center justify-center rounded-full transition-all duration-150 text-fg-muted hover:text-foreground bg-surface-2 border border-border shadow-md"
               aria-label="Close project modal"
             >
               <X size={15} strokeWidth={2} />
             </button>
 
-            {/* ── Left: Image gallery ── */}
-            <div className="w-full lg:w-[55%] h-56 sm:h-72 lg:h-full shrink-0">
+            {/* ── Left: Image gallery area (~62% width on desktop) ── */}
+            <div className="w-full lg:w-[62%] h-64 sm:h-80 lg:h-full shrink-0 border-b lg:border-b-0 lg:border-r border-border bg-black/90">
               <ImageSlider screenshots={project.screenshots} project={project} className="h-full" />
             </div>
 
-            {/* ── Right: Details ── */}
+            {/* ── Right: Project Details (~38% width on desktop) ── */}
             <div className="flex-1 overflow-y-auto p-6 lg:p-8 space-y-6">
               {/* Title + short description */}
               <div className="space-y-2 pr-8 lg:pr-0">
                 <h2
-                  className="text-xl font-semibold text-foreground tracking-tight"
+                  className="text-xl sm:text-2xl font-semibold text-foreground tracking-tight"
                   style={{ letterSpacing: "-0.025em" }}
                 >
                   {project.title}
                 </h2>
-                <p className="text-sm text-fg-muted leading-relaxed">{project.shortDescription}</p>
+                <p className="text-xs sm:text-sm text-fg-muted leading-relaxed">{project.shortDescription}</p>
               </div>
 
               {/* Divider */}
-              <div style={{ height: 1, background: "var(--ds-border)" }} />
+              <div className="h-px bg-border" />
 
               {/* Full description */}
               <div>
                 <p className="text-xs font-medium uppercase tracking-[0.1em] text-fg-subtle mb-2">
                   Overview
                 </p>
-                <p className="text-sm text-fg-muted leading-[1.8]">{project.fullDescription}</p>
+                <p className="text-xs sm:text-sm text-fg-muted leading-[1.8]">{project.fullDescription}</p>
               </div>
 
               {/* Tech stack */}
@@ -115,7 +111,7 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
                   {project.techStack.map((tech) => (
                     <span
                       key={tech}
-                      className="px-2.5 py-1 text-xs rounded-lg border border-border text-fg-muted bg-surface-2"
+                      className="px-2.5 py-1 text-xs font-medium rounded-lg border border-border text-fg-muted bg-surface-2"
                     >
                       {tech}
                     </span>
@@ -123,10 +119,12 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
                 </div>
               </div>
 
-              {/* Screenshot count */}
-              {project.screenshots.length > 1 && (
-                <p className="text-xs text-fg-subtle">
-                  {project.screenshots.length} screenshots — use arrows to navigate
+              {/* Screenshot count & zoom hint */}
+              {project.screenshots.length > 0 && (
+                <p className="text-xs text-fg-subtle flex items-center gap-1.5 pt-1">
+                  <span>{project.screenshots.length} screenshot{project.screenshots.length !== 1 ? 's' : ''} available</span>
+                  <span>•</span>
+                  <span>Click image for fullscreen lightbox</span>
                 </p>
               )}
 
@@ -137,7 +135,7 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
                     href={project.liveUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 h-9 px-4 text-sm font-medium rounded-lg bg-brand text-brand-fg hover:bg-brand-hover transition-colors duration-150"
+                    className="inline-flex items-center gap-2 h-9 px-4 text-xs sm:text-sm font-medium rounded-lg bg-brand text-brand-fg hover:bg-brand-hover transition-colors duration-150 shadow-sm"
                   >
                     <ExternalLink size={14} strokeWidth={2} />
                     Live Demo
@@ -148,7 +146,7 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
                     href={project.githubUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 h-9 px-4 text-sm font-medium rounded-lg border border-border text-fg-muted bg-surface-1 hover:text-foreground hover:bg-surface-2 transition-all duration-150"
+                    className="inline-flex items-center gap-2 h-9 px-4 text-xs sm:text-sm font-medium rounded-lg border border-border text-fg-muted bg-surface-1 hover:text-foreground hover:bg-surface-2 transition-all duration-150"
                   >
                     <GitBranch size={14} strokeWidth={1.75} />
                     GitHub

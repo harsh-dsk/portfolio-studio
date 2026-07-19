@@ -46,7 +46,7 @@ export async function getFullPortfolio(): Promise<PortfolioData> {
     return initialPortfolioData
   }
 
-  const [profileRes, socialRes, eduRes, catRes, projectRes, achieveRes, extRes] = await Promise.all([
+  const [profileRes, socialRes, eduRes, catRes, projectRes, achieveRes, extRes, resumeRes] = await Promise.all([
     supabase.from('profiles').select('*').eq('id', ownerId).single(),
     supabase.from('social_links').select('*').eq('profile_id', ownerId).order('sort_order'),
     supabase.from('education').select('*').eq('profile_id', ownerId).order('sort_order'),
@@ -54,6 +54,7 @@ export async function getFullPortfolio(): Promise<PortfolioData> {
     supabase.from('projects').select('*, project_images(*)').eq('profile_id', ownerId).order('sort_order'),
     supabase.from('achievements').select('*').eq('profile_id', ownerId).order('sort_order'),
     supabase.from('external_links').select('*').eq('profile_id', ownerId).order('sort_order'),
+    supabase.from('resume_settings').select('*').eq('profile_id', ownerId).maybeSingle(),
   ])
 
   if (profileRes.error || !profileRes.data) {
@@ -109,31 +110,42 @@ export async function getFullPortfolio(): Promise<PortfolioData> {
       .map((s: any) => s.name),
   }))
 
-  const projects = (projRes: any) => (projectRes.data ?? []).map((proj: any) => ({
-    id: proj.id,
-    title: proj.title,
-    shortDescription: proj.short_description,
-    fullDescription: proj.full_description,
-    techStack: proj.tech_stack ?? [],
-    liveUrl: proj.live_url ?? undefined,
-    githubUrl: proj.github_url ?? undefined,
-    order: proj.sort_order,
-    placeholder: {
-      from: proj.placeholder_from,
-      to: proj.placeholder_to,
-      accent: proj.placeholder_accent,
-    },
-    screenshots: (proj.project_images ?? [])
+  const projects = (projectRes.data ?? []).map((proj: any) => {
+    const screenshots = (proj.project_images ?? [])
       .slice()
-      .sort((a: any, b: any) => a.sort_order - b.sort_order)
+      .sort((a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
       .map((img: any) => ({
         id: img.id,
         url: img.url || null,
         alt: img.alt_text,
-      })),
-    isVisible: proj.is_visible ?? true,
-    includeInResume: proj.include_in_resume ?? true,
-  }))
+        storagePath: img.storage_path ?? undefined,
+        isCover: img.is_cover ?? false,
+        sortOrder: img.sort_order ?? 0,
+      }))
+
+    const coverObj = screenshots.find((img: any) => img.isCover && img.url) || screenshots.find((img: any) => img.url)
+    const coverImage = coverObj?.url ?? null
+
+    return {
+      id: proj.id,
+      title: proj.title,
+      shortDescription: proj.short_description,
+      fullDescription: proj.full_description,
+      techStack: proj.tech_stack ?? [],
+      liveUrl: proj.live_url ?? undefined,
+      githubUrl: proj.github_url ?? undefined,
+      order: proj.sort_order,
+      placeholder: {
+        from: proj.placeholder_from,
+        to: proj.placeholder_to,
+        accent: proj.placeholder_accent,
+      },
+      screenshots,
+      coverImage,
+      isVisible: proj.is_visible ?? true,
+      includeInResume: proj.include_in_resume ?? true,
+    }
+  })
 
   const achievements = (achieveRes.data ?? []).map((a: any) => ({
     id: a.id,
@@ -153,14 +165,30 @@ export async function getFullPortfolio(): Promise<PortfolioData> {
     includeInResume: l.include_in_resume ?? true,
   }))
 
+  const resumeSettings = resumeRes.data ? {
+    id: resumeRes.data.id,
+    selectedTemplate: resumeRes.data.selected_template || 'modern',
+    resumeMode: (resumeRes.data.resume_mode as 'dynamic' | 'uploaded') || 'dynamic',
+    resumePdfUrl: resumeRes.data.resume_pdf_url ?? null,
+    resumeStoragePath: resumeRes.data.resume_storage_path ?? null,
+    uploadedAt: resumeRes.data.uploaded_at ?? null,
+  } : {
+    selectedTemplate: 'modern',
+    resumeMode: 'dynamic' as const,
+    resumePdfUrl: null,
+    resumeStoragePath: null,
+    uploadedAt: null,
+  }
+
   return {
     profile,
     socialLinks,
     education,
     skills,
-    projects: projects(null),
+    projects,
     achievements,
     externalLinks,
+    resumeSettings,
     media: [],
   }
 }

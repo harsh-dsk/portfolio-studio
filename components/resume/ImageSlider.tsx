@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useCallback } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useState, useCallback, useEffect } from "react";
+import { ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
 import type { ProjectScreenshot, Project } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { Lightbox } from "./Lightbox";
 
 /* ── Per-index placeholder "screen views" ── */
 function ScreenPlaceholder({
@@ -130,7 +131,7 @@ function ScreenPlaceholder({
     <div className="w-full h-full relative flex items-center justify-center" style={{ background: bg }}>
       {/* Browser chrome */}
       <div
-        className="absolute top-0 left-0 right-0 h-8 flex items-center px-3 gap-1.5"
+        className="absolute top-0 left-0 right-0 h-8 flex items-center px-3 gap-1.5 z-10"
         style={{ background: "oklch(0 0 0 / 18%)" }}
       >
         {["oklch(0.70 0.18 25 / 60%)","oklch(0.76 0.14 65 / 60%)","oklch(0.72 0.17 155 / 60%)"].map((c, i) => (
@@ -155,75 +156,129 @@ interface ImageSliderProps {
 
 export function ImageSlider({ screenshots, project, className }: ImageSliderProps) {
   const [current, setCurrent] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+
   const total = screenshots.length;
 
   const prev = useCallback(() => setCurrent((c) => Math.max(0, c - 1)), []);
   const next = useCallback(() => setCurrent((c) => Math.min(total - 1, c + 1)), [total]);
 
+  // Keyboard navigation support (Left / Right arrow keys)
+  useEffect(() => {
+    if (total <= 1 || lightboxOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") {
+        prev();
+      } else if (e.key === "ArrowRight") {
+        next();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [total, prev, next, lightboxOpen]);
+
   const slide = screenshots[current];
 
   return (
-    <div className={cn("relative w-full h-full overflow-hidden bg-surface-0 select-none", className)}>
-      {/* Slide */}
-      <div className="absolute inset-0">
-        {slide?.url ? (
-          <img
-            src={slide.url}
-            alt={slide.alt}
-            className="w-full h-full object-cover"
-            draggable={false}
-          />
-        ) : (
-          <ScreenPlaceholder project={project} viewIndex={current} />
+    <>
+      <div className={cn("relative w-full h-full overflow-hidden bg-black/90 select-none flex items-center justify-center p-3 sm:p-6 group", className)}>
+        {/* Slide */}
+        <div
+          className="relative w-full h-full flex items-center justify-center cursor-pointer overflow-hidden rounded-xl"
+          onClick={() => slide?.url && setLightboxOpen(true)}
+          title={slide?.url ? "Click to view full screen" : undefined}
+        >
+          {slide?.url ? (
+            <>
+              {/* object-contain displays 100% of the screenshot without cropping */}
+              <img
+                src={slide.url}
+                alt={slide.alt || project.title}
+                className="max-h-full max-w-full object-contain rounded-lg shadow-2xl transition-transform duration-300 group-hover:scale-[1.01]"
+                draggable={false}
+              />
+
+              {/* Hover overlay hint */}
+              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center pointer-events-none">
+                <span className="px-3 py-1.5 rounded-full bg-black/70 text-white text-xs font-medium backdrop-blur-md flex items-center gap-1.5 shadow-lg border border-white/10">
+                  <Maximize2 size={13} />
+                  <span>Click for Fullscreen</span>
+                </span>
+              </div>
+            </>
+          ) : (
+            <ScreenPlaceholder project={project} viewIndex={current} />
+          )}
+        </div>
+
+        {/* Navigation arrows */}
+        {total > 1 && (
+          <>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                prev();
+              }}
+              disabled={current === 0}
+              className={cn(
+                "absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-150 z-20 shadow-lg border border-white/10",
+                "bg-black/60 text-white backdrop-blur-md",
+                current === 0 ? "opacity-0 pointer-events-none" : "opacity-90 hover:opacity-100 hover:bg-black/80"
+              )}
+              aria-label="Previous screenshot"
+            >
+              <ChevronLeft size={18} strokeWidth={2} />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                next();
+              }}
+              disabled={current === total - 1}
+              className={cn(
+                "absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-150 z-20 shadow-lg border border-white/10",
+                "bg-black/60 text-white backdrop-blur-md",
+                current === total - 1 ? "opacity-0 pointer-events-none" : "opacity-90 hover:opacity-100 hover:bg-black/80"
+              )}
+              aria-label="Next screenshot"
+            >
+              <ChevronRight size={18} strokeWidth={2} />
+            </button>
+          </>
+        )}
+
+        {/* Dot indicators */}
+        {total > 1 && (
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-20">
+            {screenshots.map((_, i) => (
+              <button
+                key={i}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setCurrent(i);
+                }}
+                aria-label={`Screenshot ${i + 1}`}
+                className={cn(
+                  "h-1.5 rounded-full transition-all duration-200 bg-white",
+                  i === current ? "w-5 opacity-100" : "w-1.5 opacity-40 hover:opacity-70"
+                )}
+              />
+            ))}
+          </div>
         )}
       </div>
 
-      {/* Navigation arrows */}
-      {total > 1 && (
-        <>
-          <button
-            onClick={prev}
-            disabled={current === 0}
-            className={cn(
-              "absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-150 z-10",
-              "bg-[oklch(0_0_0_/_40%)] text-white backdrop-blur-sm",
-              current === 0 ? "opacity-0 pointer-events-none" : "opacity-100 hover:bg-[oklch(0_0_0_/_60%)]"
-            )}
-            aria-label="Previous screenshot"
-          >
-            <ChevronLeft size={16} strokeWidth={2} />
-          </button>
-          <button
-            onClick={next}
-            disabled={current === total - 1}
-            className={cn(
-              "absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center transition-all duration-150 z-10",
-              "bg-[oklch(0_0_0_/_40%)] text-white backdrop-blur-sm",
-              current === total - 1 ? "opacity-0 pointer-events-none" : "opacity-100 hover:bg-[oklch(0_0_0_/_60%)]"
-            )}
-            aria-label="Next screenshot"
-          >
-            <ChevronRight size={16} strokeWidth={2} />
-          </button>
-        </>
+      {/* Lightbox Modal */}
+      {screenshots.length > 0 && (
+        <Lightbox
+          screenshots={screenshots}
+          currentIndex={current}
+          projectTitle={project.title}
+          isOpen={lightboxOpen}
+          onClose={() => setLightboxOpen(false)}
+          onIndexChange={(idx) => setCurrent(idx)}
+        />
       )}
-
-      {/* Dot indicators */}
-      {total > 1 && (
-        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
-          {screenshots.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setCurrent(i)}
-              aria-label={`Screenshot ${i + 1}`}
-              className={cn(
-                "h-1.5 rounded-full transition-all duration-200 bg-white",
-                i === current ? "w-5 opacity-100" : "w-1.5 opacity-40 hover:opacity-70"
-              )}
-            />
-          ))}
-        </div>
-      )}
-    </div>
+    </>
   );
 }
