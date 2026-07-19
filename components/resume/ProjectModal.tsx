@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, ExternalLink, GitBranch } from "lucide-react";
 import type { Project } from "@/lib/types";
 import { ImageSlider } from "./ImageSlider";
+import { cn } from "@/lib/utils";
 
 interface ProjectModalProps {
   project: Project | null;
@@ -99,7 +100,29 @@ export function ProjectModal({ project, onClose }: ProjectModalProps) {
                 <p className="text-xs font-medium uppercase tracking-[0.1em] text-fg-subtle mb-2">
                   Overview
                 </p>
-                <p className="text-xs sm:text-sm text-fg-muted leading-[1.8]">{project.fullDescription}</p>
+                <div className="space-y-2.5">
+                  {project.fullDescription
+                    .split(/\r?\n/)
+                    .filter((line) => line.trim() !== "")
+                    .map((line, index) => {
+                      const trimmed = line.trim();
+                      const isBullet =
+                        trimmed.startsWith("•") ||
+                        trimmed.startsWith("- ") ||
+                        trimmed.startsWith("* ");
+                      return (
+                        <p
+                          key={`desc-line-${index}`}
+                          className={cn(
+                            "text-xs sm:text-sm text-fg-muted leading-relaxed",
+                            isBullet && "pl-2"
+                          )}
+                        >
+                          {line}
+                        </p>
+                      );
+                    })}
+                </div>
               </div>
 
               {/* Tech stack */}
