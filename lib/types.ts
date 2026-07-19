@@ -31,6 +31,8 @@ export interface SocialLink {
   platform: string;
   label: string;
   url: string;
+  isVisible?: boolean;
+  includeInResume?: boolean;
 }
 
 /* ── Education ── */
@@ -44,6 +46,8 @@ export interface EducationEntry {
   gpa?: string;
   coursework?: string[];
   description?: string;
+  isVisible?: boolean;
+  includeInResume?: boolean;
 }
 
 /* ── Skills ── */
@@ -54,6 +58,8 @@ export interface SkillCategory {
   skills: string[];
   /** Manual sort order for categories */
   order: number;
+  isVisible?: boolean;
+  includeInResume?: boolean;
 }
 
 /* ── Projects ── */
@@ -82,6 +88,8 @@ export interface Project {
   order: number;
   screenshots: ProjectScreenshot[];
   placeholder: ProjectPlaceholder;
+  isVisible?: boolean;
+  includeInResume?: boolean;
 }
 
 /* ── Achievements ── */
@@ -90,6 +98,8 @@ export interface Achievement {
   title: string;
   description: string;
   date?: string;
+  isVisible?: boolean;
+  includeInResume?: boolean;
 }
 
 /* ── External Links ── */
@@ -98,6 +108,8 @@ export interface ExternalLink {
   label: string;
   url: string;
   description?: string;
+  isVisible?: boolean;
+  includeInResume?: boolean;
 }
 
 /* ── Media Library ── */
@@ -138,17 +150,24 @@ export interface PortfolioContextValue {
   updateSocialLink: (id: string, updates: Partial<Omit<SocialLink, "id">>) => void;
   deleteSocialLink: (id: string) => void;
   reorderSocialLinks: (links: SocialLink[]) => void;
+  toggleSocialLinkVisibility: (id: string, isVisible: boolean) => void;
+  toggleSocialLinkResume: (id: string, includeInResume: boolean) => void;
 
   /* ── Education ── */
   addEducation: (entry: Omit<EducationEntry, "id">) => void;
   deleteEducation: (id: string) => void;
   reorderEducation: (entries: EducationEntry[]) => void;
+  toggleEducationVisibility: (id: string, isVisible: boolean) => void;
+  toggleEducationResume: (id: string, includeInResume: boolean) => void;
 
   /* ── Skills — categories ── */
   addSkillCategory: (name: string) => void;
   renameSkillCategory: (id: string, name: string) => void;
   deleteSkillCategory: (id: string) => void;
   reorderSkillCategories: (categories: SkillCategory[]) => void;
+  toggleSkillCategoryVisibility: (id: string, isVisible: boolean) => void;
+  toggleSkillCategoryResume: (id: string, includeInResume: boolean) => void;
+
   /* ── Skills — items within a category ── */
   addSkill: (categoryId: string, skill: string) => void;
   removeSkill: (categoryId: string, skill: string) => void;
@@ -159,17 +178,23 @@ export interface PortfolioContextValue {
   updateProject: (id: string, updates: Partial<Omit<Project, "id">>) => void;
   deleteProject: (id: string) => void;
   reorderProjects: (projects: Project[]) => void;
+  toggleProjectVisibility: (id: string, isVisible: boolean) => void;
+  toggleProjectResume: (id: string, includeInResume: boolean) => void;
 
   /* ── Achievements ── */
   addAchievement: (a: Omit<Achievement, "id">) => void;
   updateAchievement: (id: string, updates: Partial<Omit<Achievement, "id">>) => void;
   deleteAchievement: (id: string) => void;
   reorderAchievements: (achievements: Achievement[]) => void;
+  toggleAchievementVisibility: (id: string, isVisible: boolean) => void;
+  toggleAchievementResume: (id: string, includeInResume: boolean) => void;
 
   /* ── External Links ── */
   addExternalLink: (l: Omit<ExternalLink, "id">) => void;
   deleteExternalLink: (id: string) => void;
   reorderExternalLinks: (links: ExternalLink[]) => void;
+  toggleExternalLinkVisibility: (id: string, isVisible: boolean) => void;
+  toggleExternalLinkResume: (id: string, includeInResume: boolean) => void;
 
   /* ── Media ── */
   addMediaItem: (item: Omit<MediaItem, "id" | "uploadedAt">) => void;

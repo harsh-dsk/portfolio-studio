@@ -58,13 +58,16 @@ export async function updateSocialLink(id: string, updates: Partial<Omit<SocialL
   const supabase = createClient()
   const ownerId = await getOwnerId()
   
+  const payload: any = {}
+  if (updates.platform !== undefined) payload.platform = updates.platform
+  if (updates.label !== undefined) payload.label = updates.label
+  if (updates.url !== undefined) payload.url = updates.url
+  if (updates.isVisible !== undefined) payload.is_visible = updates.isVisible
+  if (updates.includeInResume !== undefined) payload.include_in_resume = updates.includeInResume
+
   const { error } = await supabase
     .from('social_links')
-    .update({
-      platform: updates.platform,
-      label: updates.label,
-      url: updates.url
-    })
+    .update(payload)
     .eq('id', id)
     .eq('profile_id', ownerId)
 

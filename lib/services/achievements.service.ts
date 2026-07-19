@@ -58,13 +58,16 @@ export async function updateAchievement(id: string, updates: Partial<Omit<Achiev
   const supabase = createClient()
   const ownerId = await getOwnerId()
   
+  const payload: any = {}
+  if (updates.title !== undefined) payload.title = updates.title
+  if (updates.description !== undefined) payload.description = updates.description
+  if (updates.date !== undefined) payload.date = updates.date
+  if (updates.isVisible !== undefined) payload.is_visible = updates.isVisible
+  if (updates.includeInResume !== undefined) payload.include_in_resume = updates.includeInResume
+
   const { error } = await supabase
     .from('achievements')
-    .update({
-      title: updates.title,
-      description: updates.description,
-      date: updates.date
-    })
+    .update(payload)
     .eq('id', id)
     .eq('profile_id', ownerId)
 

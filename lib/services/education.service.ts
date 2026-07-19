@@ -73,18 +73,21 @@ export async function updateEducation(id: string, updates: Partial<Omit<Educatio
   const supabase = createClient()
   const ownerId = await getOwnerId()
   
+  const payload: any = {}
+  if (updates.institution !== undefined) payload.institution = updates.institution
+  if (updates.degree !== undefined) payload.degree = updates.degree
+  if (updates.field !== undefined) payload.field = updates.field
+  if (updates.period !== undefined) payload.period = updates.period
+  if (updates.location !== undefined) payload.location = updates.location
+  if (updates.gpa !== undefined) payload.gpa = updates.gpa
+  if (updates.coursework !== undefined) payload.coursework = updates.coursework
+  if (updates.description !== undefined) payload.description = updates.description
+  if (updates.isVisible !== undefined) payload.is_visible = updates.isVisible
+  if (updates.includeInResume !== undefined) payload.include_in_resume = updates.includeInResume
+
   const { error } = await supabase
     .from('education')
-    .update({
-      institution: updates.institution,
-      degree: updates.degree,
-      field: updates.field,
-      period: updates.period,
-      location: updates.location,
-      gpa: updates.gpa,
-      coursework: updates.coursework,
-      description: updates.description
-    })
+    .update(payload)
     .eq('id', id)
     .eq('profile_id', ownerId)
 

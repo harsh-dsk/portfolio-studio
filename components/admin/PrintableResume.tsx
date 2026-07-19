@@ -9,7 +9,13 @@ interface PrintableResumeProps {
 }
 
 export function PrintableResume({ data, template }: PrintableResumeProps) {
-  const { profile, socialLinks, education, skills, projects, achievements, externalLinks } = data
+  const profile = data.profile
+  const socialLinks = (data.socialLinks || []).filter((l) => l.includeInResume !== false)
+  const education = (data.education || []).filter((e) => e.includeInResume !== false)
+  const skills = (data.skills || []).filter((c) => c.includeInResume !== false)
+  const projects = (data.projects || []).filter((p) => p.includeInResume !== false)
+  const achievements = (data.achievements || []).filter((a) => a.includeInResume !== false)
+  const externalLinks = (data.externalLinks || []).filter((l) => l.includeInResume !== false)
 
   const activeTemplate = template || 'modern'
 

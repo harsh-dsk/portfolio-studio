@@ -45,6 +45,8 @@ export async function getFullPortfolioClient(): Promise<PortfolioData> {
     platform: l.platform,
     label: l.label,
     url: l.url,
+    isVisible: l.is_visible ?? true,
+    includeInResume: l.include_in_resume ?? true,
   }))
 
   const education = (eduRes.data ?? []).map((e: any) => ({
@@ -57,12 +59,16 @@ export async function getFullPortfolioClient(): Promise<PortfolioData> {
     gpa: e.gpa ?? undefined,
     coursework: e.coursework ?? undefined,
     description: e.description ?? undefined,
+    isVisible: e.is_visible ?? true,
+    includeInResume: e.include_in_resume ?? true,
   }))
 
   const skills = (catRes.data ?? []).map((c: any) => ({
     id: c.id,
     name: c.name,
     order: c.sort_order,
+    isVisible: c.is_visible ?? true,
+    includeInResume: c.include_in_resume ?? true,
     skills: (c.skills ?? [])
       .slice()
       .sort((a: any, b: any) => a.sort_order - b.sort_order)
@@ -91,6 +97,8 @@ export async function getFullPortfolioClient(): Promise<PortfolioData> {
         url: img.url || null,
         alt: img.alt_text,
       })),
+    isVisible: proj.is_visible ?? true,
+    includeInResume: proj.include_in_resume ?? true,
   }))
 
   const achievements = (achieveRes.data ?? []).map((a: any) => ({
@@ -98,6 +106,8 @@ export async function getFullPortfolioClient(): Promise<PortfolioData> {
     title: a.title,
     description: a.description,
     date: a.date ?? undefined,
+    isVisible: a.is_visible ?? true,
+    includeInResume: a.include_in_resume ?? true,
   }))
 
   const externalLinks = (extRes.data ?? []).map((l: any) => ({
@@ -105,6 +115,8 @@ export async function getFullPortfolioClient(): Promise<PortfolioData> {
     label: l.label,
     url: l.url,
     description: l.description ?? undefined,
+    isVisible: l.is_visible ?? true,
+    includeInResume: l.include_in_resume ?? true,
   }))
 
   return {

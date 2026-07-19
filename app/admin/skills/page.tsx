@@ -5,6 +5,7 @@ import { Plus, Pencil, Trash2, X, Check } from "lucide-react";
 import { PageHeader } from "@/components/admin/PageHeader";
 import { usePortfolio } from "@/lib/context/PortfolioContext";
 import { SortableList, SortableItem, SortableHandle } from "@/components/admin/SortableList";
+import { ItemToggleControls } from "@/components/admin/ItemToggleControls";
 import type { SkillCategory } from "@/lib/types";
 
 /* ── Per-category accent palette (same as public portfolio) ── */
@@ -31,6 +32,7 @@ function CategoryCard({
   const {
     renameSkillCategory, deleteSkillCategory,
     addSkill, removeSkill, reorderSkillsInCategory,
+    toggleSkillCategoryVisibility, toggleSkillCategoryResume,
   } = usePortfolio();
 
   const [renaming, setRenaming] = useState(false);
@@ -76,9 +78,17 @@ function CategoryCard({
           <span className="flex-1 text-sm font-semibold text-foreground">{category.name}</span>
         )}
 
-        <span className="text-xs text-fg-subtle tabular-nums ml-auto shrink-0">
+        <span className="text-xs text-fg-subtle tabular-nums ml-auto shrink-0 mr-1">
           {category.skills.length} skill{category.skills.length !== 1 ? "s" : ""}
         </span>
+
+        <ItemToggleControls
+          isVisible={category.isVisible}
+          includeInResume={category.includeInResume}
+          onToggleVisibility={(val) => toggleSkillCategoryVisibility(category.id, val)}
+          onToggleResume={(val) => toggleSkillCategoryResume(category.id, val)}
+          size="sm"
+        />
 
         {renaming ? (
           <>

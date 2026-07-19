@@ -37,6 +37,7 @@ import {
 import {
   addSkillCategory as addSkillCategorySvc,
   renameSkillCategory as renameSkillCategorySvc,
+  updateSkillCategory as updateSkillCategorySvc,
   deleteSkillCategory as deleteSkillCategorySvc,
   reorderSkillCategories as reorderSkillCategoriesSvc,
   addSkill as addSkillSvc,
@@ -512,6 +513,175 @@ export function PortfolioProvider({
     }));
   }, []);
 
+  /* ── Visibility & Resume Toggle Callbacks ─────────────────────────────── */
+  const toggleSocialLinkVisibility = useCallback((id: string, isVisible: boolean) => {
+    setData((prev) => ({
+      ...prev,
+      socialLinks: prev.socialLinks.map((l) => (l.id === id ? { ...l, isVisible } : l)),
+    }));
+    updateSocialLinkSvc(id, { isVisible }).catch((err) => {
+      console.error("[PortfolioContext] toggleSocialLinkVisibility failed:", err);
+      setData((prev) => ({
+        ...prev,
+        socialLinks: prev.socialLinks.map((l) => (l.id === id ? { ...l, isVisible: !isVisible } : l)),
+      }));
+    });
+  }, []);
+
+  const toggleSocialLinkResume = useCallback((id: string, includeInResume: boolean) => {
+    setData((prev) => ({
+      ...prev,
+      socialLinks: prev.socialLinks.map((l) => (l.id === id ? { ...l, includeInResume } : l)),
+    }));
+    updateSocialLinkSvc(id, { includeInResume }).catch((err) => {
+      console.error("[PortfolioContext] toggleSocialLinkResume failed:", err);
+      setData((prev) => ({
+        ...prev,
+        socialLinks: prev.socialLinks.map((l) => (l.id === id ? { ...l, includeInResume: !includeInResume } : l)),
+      }));
+    });
+  }, []);
+
+  const toggleEducationVisibility = useCallback((id: string, isVisible: boolean) => {
+    setData((prev) => ({
+      ...prev,
+      education: prev.education.map((e) => (e.id === id ? { ...e, isVisible } : e)),
+    }));
+    updateEducationSvc(id, { isVisible }).catch((err) => {
+      console.error("[PortfolioContext] toggleEducationVisibility failed:", err);
+      setData((prev) => ({
+        ...prev,
+        education: prev.education.map((e) => (e.id === id ? { ...e, isVisible: !isVisible } : e)),
+      }));
+    });
+  }, []);
+
+  const toggleEducationResume = useCallback((id: string, includeInResume: boolean) => {
+    setData((prev) => ({
+      ...prev,
+      education: prev.education.map((e) => (e.id === id ? { ...e, includeInResume } : e)),
+    }));
+    updateEducationSvc(id, { includeInResume }).catch((err) => {
+      console.error("[PortfolioContext] toggleEducationResume failed:", err);
+      setData((prev) => ({
+        ...prev,
+        education: prev.education.map((e) => (e.id === id ? { ...e, includeInResume: !includeInResume } : e)),
+      }));
+    });
+  }, []);
+
+  const toggleSkillCategoryVisibility = useCallback((id: string, isVisible: boolean) => {
+    setData((prev) => ({
+      ...prev,
+      skills: prev.skills.map((c) => (c.id === id ? { ...c, isVisible } : c)),
+    }));
+    updateSkillCategorySvc(id, { isVisible }).catch((err) => {
+      console.error("[PortfolioContext] toggleSkillCategoryVisibility failed:", err);
+      setData((prev) => ({
+        ...prev,
+        skills: prev.skills.map((c) => (c.id === id ? { ...c, isVisible: !isVisible } : c)),
+      }));
+    });
+  }, []);
+
+  const toggleSkillCategoryResume = useCallback((id: string, includeInResume: boolean) => {
+    setData((prev) => ({
+      ...prev,
+      skills: prev.skills.map((c) => (c.id === id ? { ...c, includeInResume } : c)),
+    }));
+    updateSkillCategorySvc(id, { includeInResume }).catch((err) => {
+      console.error("[PortfolioContext] toggleSkillCategoryResume failed:", err);
+      setData((prev) => ({
+        ...prev,
+        skills: prev.skills.map((c) => (c.id === id ? { ...c, includeInResume: !includeInResume } : c)),
+      }));
+    });
+  }, []);
+
+  const toggleProjectVisibility = useCallback((id: string, isVisible: boolean) => {
+    setData((prev) => ({
+      ...prev,
+      projects: prev.projects.map((p) => (p.id === id ? { ...p, isVisible } : p)),
+    }));
+    updateProjectSvc(id, { isVisible }).catch((err) => {
+      console.error("[PortfolioContext] toggleProjectVisibility failed:", err);
+      setData((prev) => ({
+        ...prev,
+        projects: prev.projects.map((p) => (p.id === id ? { ...p, isVisible: !isVisible } : p)),
+      }));
+    });
+  }, []);
+
+  const toggleProjectResume = useCallback((id: string, includeInResume: boolean) => {
+    setData((prev) => ({
+      ...prev,
+      projects: prev.projects.map((p) => (p.id === id ? { ...p, includeInResume } : p)),
+    }));
+    updateProjectSvc(id, { includeInResume }).catch((err) => {
+      console.error("[PortfolioContext] toggleProjectResume failed:", err);
+      setData((prev) => ({
+        ...prev,
+        projects: prev.projects.map((p) => (p.id === id ? { ...p, includeInResume: !includeInResume } : p)),
+      }));
+    });
+  }, []);
+
+  const toggleAchievementVisibility = useCallback((id: string, isVisible: boolean) => {
+    setData((prev) => ({
+      ...prev,
+      achievements: prev.achievements.map((a) => (a.id === id ? { ...a, isVisible } : a)),
+    }));
+    updateAchievementSvc(id, { isVisible }).catch((err) => {
+      console.error("[PortfolioContext] toggleAchievementVisibility failed:", err);
+      setData((prev) => ({
+        ...prev,
+        achievements: prev.achievements.map((a) => (a.id === id ? { ...a, isVisible: !isVisible } : a)),
+      }));
+    });
+  }, []);
+
+  const toggleAchievementResume = useCallback((id: string, includeInResume: boolean) => {
+    setData((prev) => ({
+      ...prev,
+      achievements: prev.achievements.map((a) => (a.id === id ? { ...a, includeInResume } : a)),
+    }));
+    updateAchievementSvc(id, { includeInResume }).catch((err) => {
+      console.error("[PortfolioContext] toggleAchievementResume failed:", err);
+      setData((prev) => ({
+        ...prev,
+        achievements: prev.achievements.map((a) => (a.id === id ? { ...a, includeInResume: !includeInResume } : a)),
+      }));
+    });
+  }, []);
+
+  const toggleExternalLinkVisibility = useCallback((id: string, isVisible: boolean) => {
+    setData((prev) => ({
+      ...prev,
+      externalLinks: prev.externalLinks.map((l) => (l.id === id ? { ...l, isVisible } : l)),
+    }));
+    updateExternalLinkSvc(id, { isVisible }).catch((err) => {
+      console.error("[PortfolioContext] toggleExternalLinkVisibility failed:", err);
+      setData((prev) => ({
+        ...prev,
+        externalLinks: prev.externalLinks.map((l) => (l.id === id ? { ...l, isVisible: !isVisible } : l)),
+      }));
+    });
+  }, []);
+
+  const toggleExternalLinkResume = useCallback((id: string, includeInResume: boolean) => {
+    setData((prev) => ({
+      ...prev,
+      externalLinks: prev.externalLinks.map((l) => (l.id === id ? { ...l, includeInResume } : l)),
+    }));
+    updateExternalLinkSvc(id, { includeInResume }).catch((err) => {
+      console.error("[PortfolioContext] toggleExternalLinkResume failed:", err);
+      setData((prev) => ({
+        ...prev,
+        externalLinks: prev.externalLinks.map((l) => (l.id === id ? { ...l, includeInResume: !includeInResume } : l)),
+      }));
+    });
+  }, []);
+
   /* ── Assemble context value ─────────────────────────────────────────── */
   const value: ExtendedPortfolioContextValue = {
     data,
@@ -522,13 +692,19 @@ export function PortfolioProvider({
     updateSocialLink,
     deleteSocialLink,
     reorderSocialLinks,
+    toggleSocialLinkVisibility,
+    toggleSocialLinkResume,
     addEducation,
     deleteEducation,
     reorderEducation,
+    toggleEducationVisibility,
+    toggleEducationResume,
     addSkillCategory,
     renameSkillCategory,
     deleteSkillCategory,
     reorderSkillCategories,
+    toggleSkillCategoryVisibility,
+    toggleSkillCategoryResume,
     addSkill,
     removeSkill,
     reorderSkillsInCategory,
@@ -536,13 +712,19 @@ export function PortfolioProvider({
     updateProject,
     deleteProject,
     reorderProjects,
+    toggleProjectVisibility,
+    toggleProjectResume,
     addAchievement,
     updateAchievement,
     deleteAchievement,
     reorderAchievements,
+    toggleAchievementVisibility,
+    toggleAchievementResume,
     addExternalLink,
     deleteExternalLink,
     reorderExternalLinks,
+    toggleExternalLinkVisibility,
+    toggleExternalLinkResume,
     addMediaItem,
     deleteMediaItem,
   };

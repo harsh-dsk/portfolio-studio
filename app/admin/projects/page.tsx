@@ -8,6 +8,7 @@ import { usePortfolio } from '@/lib/context/PortfolioContext'
 import { uploadProjectImage, addProjectImage } from '@/lib/services/projects.service'
 import type { Project } from '@/lib/types'
 import { SortableList, SortableItem, SortableHandle } from '@/components/admin/SortableList'
+import { ItemToggleControls } from '@/components/admin/ItemToggleControls'
 
 function MiniPlaceholder({ project }: { project: Project }) {
   const from = project.placeholder?.from || 'oklch(0.15 0.04 250)'
@@ -50,7 +51,7 @@ function MiniPlaceholder({ project }: { project: Project }) {
 }
 
 export default function ProjectsPage() {
-  const { data, addProject, updateProject, deleteProject, reorderProjects } = usePortfolio()
+  const { data, addProject, updateProject, deleteProject, reorderProjects, toggleProjectVisibility, toggleProjectResume } = usePortfolio()
   const projects = data.projects
 
   const [showAdd, setShowAdd] = useState(false)
@@ -176,6 +177,13 @@ export default function ProjectsPage() {
                     </a>
                   )}
                   <div className="ml-auto flex items-center gap-1">
+                    <ItemToggleControls
+                      isVisible={project.isVisible}
+                      includeInResume={project.includeInResume}
+                      onToggleVisibility={(val) => toggleProjectVisibility(project.id, val)}
+                      onToggleResume={(val) => toggleProjectResume(project.id, val)}
+                      size="sm"
+                    />
                     <label className="inline-flex items-center justify-center p-1.5 rounded-md text-fg-subtle hover:text-foreground hover:bg-surface-2 transition-all cursor-pointer" aria-label="Add Photo" title="Add Photo">
                       <ImageIcon size={12} strokeWidth={1.75} />
                       <input type="file" accept="image/*" className="sr-only" onChange={(e) => handleScreenshotUpload(project.id, e)} />

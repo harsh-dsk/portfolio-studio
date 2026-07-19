@@ -6,9 +6,10 @@ import { PageHeader } from "@/components/admin/PageHeader";
 import { FormField } from "@/components/admin/FormField";
 import { usePortfolio } from "@/lib/context/PortfolioContext";
 import { SortableList, SortableItem, SortableHandle } from "@/components/admin/SortableList";
+import { ItemToggleControls } from "@/components/admin/ItemToggleControls";
 
 export default function ExternalLinksPage() {
-  const { data, addExternalLink, deleteExternalLink, reorderExternalLinks } = usePortfolio();
+  const { data, addExternalLink, deleteExternalLink, reorderExternalLinks, toggleExternalLinkVisibility, toggleExternalLinkResume } = usePortfolio();
   const links = data.externalLinks;
 
   const [showAdd, setShowAdd] = useState(false);
@@ -66,6 +67,13 @@ export default function ExternalLinksPage() {
                 <p className="text-[11px] text-fg-subtle truncate">{link.url}</p>
               </div>
               <div className="flex items-center gap-1.5 shrink-0">
+                <ItemToggleControls
+                  isVisible={link.isVisible}
+                  includeInResume={link.includeInResume}
+                  onToggleVisibility={(val) => toggleExternalLinkVisibility(link.id, val)}
+                  onToggleResume={(val) => toggleExternalLinkResume(link.id, val)}
+                  size="sm"
+                />
                 <button
                   onClick={() => deleteExternalLink(link.id)}
                   className="p-1.5 rounded-md text-fg-subtle hover:text-[oklch(0.65_0.22_27)] hover:bg-[oklch(0.65_0.22_27_/_8%)] transition-all"

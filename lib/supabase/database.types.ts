@@ -62,6 +62,8 @@ export type Database = {
           label: string
           url: string
           sort_order: number
+          is_visible: boolean
+          include_in_resume: boolean
           created_at: string
         }
         Insert: {
@@ -71,6 +73,8 @@ export type Database = {
           label: string
           url: string
           sort_order?: number
+          is_visible?: boolean
+          include_in_resume?: boolean
           created_at?: string
         }
         Update: {
@@ -80,6 +84,8 @@ export type Database = {
           label?: string
           url?: string
           sort_order?: number
+          is_visible?: boolean
+          include_in_resume?: boolean
           created_at?: string
         }
         Relationships: [
@@ -105,6 +111,8 @@ export type Database = {
           coursework: string[] | null
           description: string | null
           sort_order: number
+          is_visible: boolean
+          include_in_resume: boolean
           created_at: string
         }
         Insert: {
@@ -119,6 +127,8 @@ export type Database = {
           coursework?: string[] | null
           description?: string | null
           sort_order?: number
+          is_visible?: boolean
+          include_in_resume?: boolean
           created_at?: string
         }
         Update: {
@@ -133,6 +143,8 @@ export type Database = {
           coursework?: string[] | null
           description?: string | null
           sort_order?: number
+          is_visible?: boolean
+          include_in_resume?: boolean
           created_at?: string
         }
         Relationships: [
@@ -151,6 +163,8 @@ export type Database = {
           profile_id: string
           name: string
           sort_order: number
+          is_visible: boolean
+          include_in_resume: boolean
           created_at: string
         }
         Insert: {
@@ -158,6 +172,8 @@ export type Database = {
           profile_id: string
           name: string
           sort_order?: number
+          is_visible?: boolean
+          include_in_resume?: boolean
           created_at?: string
         }
         Update: {
@@ -165,6 +181,8 @@ export type Database = {
           profile_id?: string
           name?: string
           sort_order?: number
+          is_visible?: boolean
+          include_in_resume?: boolean
           created_at?: string
         }
         Relationships: [
@@ -183,6 +201,8 @@ export type Database = {
           category_id: string
           name: string
           sort_order: number
+          is_visible: boolean
+          include_in_resume: boolean
           created_at: string
         }
         Insert: {
@@ -190,6 +210,8 @@ export type Database = {
           category_id: string
           name: string
           sort_order?: number
+          is_visible?: boolean
+          include_in_resume?: boolean
           created_at?: string
         }
         Update: {
@@ -197,6 +219,8 @@ export type Database = {
           category_id?: string
           name?: string
           sort_order?: number
+          is_visible?: boolean
+          include_in_resume?: boolean
           created_at?: string
         }
         Relationships: [
@@ -223,6 +247,8 @@ export type Database = {
           placeholder_from: string
           placeholder_to: string
           placeholder_accent: string
+          is_visible: boolean
+          include_in_resume: boolean
           created_at: string
           updated_at: string
         }
@@ -239,6 +265,8 @@ export type Database = {
           placeholder_from?: string
           placeholder_to?: string
           placeholder_accent?: string
+          is_visible?: boolean
+          include_in_resume?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -255,6 +283,8 @@ export type Database = {
           placeholder_from?: string
           placeholder_to?: string
           placeholder_accent?: string
+          is_visible?: boolean
+          include_in_resume?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -311,6 +341,8 @@ export type Database = {
           description: string
           date: string | null
           sort_order: number
+          is_visible: boolean
+          include_in_resume: boolean
           created_at: string
         }
         Insert: {
@@ -320,6 +352,8 @@ export type Database = {
           description?: string
           date?: string | null
           sort_order?: number
+          is_visible?: boolean
+          include_in_resume?: boolean
           created_at?: string
         }
         Update: {
@@ -329,6 +363,8 @@ export type Database = {
           description?: string
           date?: string | null
           sort_order?: number
+          is_visible?: boolean
+          include_in_resume?: boolean
           created_at?: string
         }
         Relationships: [
@@ -349,6 +385,8 @@ export type Database = {
           url: string
           description: string | null
           sort_order: number
+          is_visible: boolean
+          include_in_resume: boolean
           created_at: string
         }
         Insert: {
@@ -358,6 +396,8 @@ export type Database = {
           url: string
           description?: string | null
           sort_order?: number
+          is_visible?: boolean
+          include_in_resume?: boolean
           created_at?: string
         }
         Update: {
@@ -367,6 +407,8 @@ export type Database = {
           url?: string
           description?: string | null
           sort_order?: number
+          is_visible?: boolean
+          include_in_resume?: boolean
           created_at?: string
         }
         Relationships: [

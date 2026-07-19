@@ -91,6 +91,8 @@ export async function updateProject(id: string, updates: Partial<Omit<Project, '
   if (updates.liveUrl !== undefined) payload.live_url = updates.liveUrl
   if (updates.githubUrl !== undefined) payload.github_url = updates.githubUrl
   if (updates.order !== undefined) payload.sort_order = updates.order
+  if (updates.isVisible !== undefined) payload.is_visible = updates.isVisible
+  if (updates.includeInResume !== undefined) payload.include_in_resume = updates.includeInResume
   if (updates.placeholder) {
     payload.placeholder_from = updates.placeholder.from
     payload.placeholder_to = updates.placeholder.to

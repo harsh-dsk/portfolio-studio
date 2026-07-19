@@ -6,9 +6,10 @@ import { PageHeader } from "@/components/admin/PageHeader";
 import { FormField } from "@/components/admin/FormField";
 import { usePortfolio } from "@/lib/context/PortfolioContext";
 import { SortableList, SortableItem, SortableHandle } from "@/components/admin/SortableList";
+import { ItemToggleControls } from "@/components/admin/ItemToggleControls";
 
 export default function EducationPage() {
-  const { data, addEducation, deleteEducation, reorderEducation } = usePortfolio();
+  const { data, addEducation, deleteEducation, reorderEducation, toggleEducationVisibility, toggleEducationResume } = usePortfolio();
   const entries = data.education;
 
   const [showAdd, setShowAdd] = useState(false);
@@ -83,6 +84,13 @@ export default function EducationPage() {
                   )}
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
+                  <ItemToggleControls
+                    isVisible={entry.isVisible}
+                    includeInResume={entry.includeInResume}
+                    onToggleVisibility={(val) => toggleEducationVisibility(entry.id, val)}
+                    onToggleResume={(val) => toggleEducationResume(entry.id, val)}
+                    size="sm"
+                  />
                   <SortableHandle />
                   <button
                     onClick={() => deleteEducation(entry.id)}

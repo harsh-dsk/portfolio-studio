@@ -65,6 +65,21 @@ export async function renameSkillCategory(id: string, name: string): Promise<voi
   if (error) throw new Error(`Failed to rename skill category: ${error.message}`)
 }
 
+export async function updateSkillCategory(id: string, updates: { isVisible?: boolean; includeInResume?: boolean; name?: string }): Promise<void> {
+  const supabase = createClient()
+  const payload: any = {}
+  if (updates.name !== undefined) payload.name = updates.name
+  if (updates.isVisible !== undefined) payload.is_visible = updates.isVisible
+  if (updates.includeInResume !== undefined) payload.include_in_resume = updates.includeInResume
+
+  const { error } = await supabase
+    .from('skill_categories')
+    .update(payload)
+    .eq('id', id)
+
+  if (error) throw new Error(`Failed to update skill category: ${error.message}`)
+}
+
 export async function deleteSkillCategory(id: string): Promise<void> {
   const supabase = createClient()
   

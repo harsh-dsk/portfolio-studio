@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { ProfilePhoto } from "@/components/ui/ProfilePhoto";
 import { AnimatedBackground } from "@/components/ui/AnimatedBackground";
@@ -15,26 +15,16 @@ import { Achievements } from "@/components/resume/Achievements";
 import { ExternalLinks } from "@/components/resume/ExternalLinks";
 import type { PortfolioData } from "@/lib/types";
 
-/**
- * PublicPortfolio
- *
- * Client component so it can:
- *  1. Read from localStorage on mount (shows latest admin changes after refresh)
- *  2. Listen for `storage` events (cross-tab live updates when admin saves)
- *
- * Renders with initialPortfolioData on the server (SSR), then hydrates with
- * localStorage data on the client — no flash because the structure is identical.
- *
- * SUPABASE MIGRATION:
- *  Replace `loadPortfolioData()` with a server-side fetch in a Server Component
- *  and pass data as a prop. The UI components remain unchanged.
- */
 export function PublicPortfolio({ initialData }: { initialData: PortfolioData }) {
-  const [data, setData] = useState<PortfolioData>(initialData);
+  const [data] = useState<PortfolioData>(initialData);
 
-
-
-  const { profile, socialLinks, education, skills, projects, achievements, externalLinks } = data;
+  const profile = data.profile;
+  const socialLinks = (data.socialLinks || []).filter((l) => l.isVisible !== false);
+  const education = (data.education || []).filter((e) => e.isVisible !== false);
+  const skills = (data.skills || []).filter((c) => c.isVisible !== false);
+  const projects = (data.projects || []).filter((p) => p.isVisible !== false);
+  const achievements = (data.achievements || []).filter((a) => a.isVisible !== false);
+  const externalLinks = (data.externalLinks || []).filter((l) => l.isVisible !== false);
 
   /* Adapt new SkillCategory type → TechnicalSkills prop shape */
   const skillCategories = skills

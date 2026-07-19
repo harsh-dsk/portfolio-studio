@@ -58,13 +58,16 @@ export async function updateExternalLink(id: string, updates: Partial<Omit<Exter
   const supabase = createClient()
   const ownerId = await getOwnerId()
   
+  const payload: any = {}
+  if (updates.label !== undefined) payload.label = updates.label
+  if (updates.url !== undefined) payload.url = updates.url
+  if (updates.description !== undefined) payload.description = updates.description
+  if (updates.isVisible !== undefined) payload.is_visible = updates.isVisible
+  if (updates.includeInResume !== undefined) payload.include_in_resume = updates.includeInResume
+
   const { error } = await supabase
     .from('external_links')
-    .update({
-      label: updates.label,
-      url: updates.url,
-      description: updates.description
-    })
+    .update(payload)
     .eq('id', id)
     .eq('profile_id', ownerId)
 

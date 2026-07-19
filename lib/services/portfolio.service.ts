@@ -13,10 +13,6 @@ export async function getFullPortfolio(): Promise<PortfolioData> {
   const supabase = await createClient()
 
   // Deterministic Owner Resolution:
-  // 1. Authenticated user ID (for admin views)
-  // 2. Profile matching ADMIN_EMAIL (for public views)
-  // 3. Oldest profile by created_at ASC
-  // 4. NEXT_PUBLIC_PORTFOLIO_OWNER_ID seed variable
   const { data: { user } } = await supabase.auth.getUser()
   let ownerId = user?.id
 
@@ -60,7 +56,6 @@ export async function getFullPortfolio(): Promise<PortfolioData> {
     supabase.from('external_links').select('*').eq('profile_id', ownerId).order('sort_order'),
   ])
 
-  // Map each result to PortfolioData type
   if (profileRes.error || !profileRes.data) {
     console.warn('[Portfolio] Profile not found for ID:', ownerId, '— using initial data.')
     return initialPortfolioData
@@ -84,6 +79,8 @@ export async function getFullPortfolio(): Promise<PortfolioData> {
     platform: l.platform,
     label: l.label,
     url: l.url,
+    isVisible: l.is_visible ?? true,
+    includeInResume: l.include_in_resume ?? true,
   }))
 
   const education = (eduRes.data ?? []).map((e: any) => ({
@@ -96,19 +93,23 @@ export async function getFullPortfolio(): Promise<PortfolioData> {
     gpa: e.gpa ?? undefined,
     coursework: e.coursework ?? undefined,
     description: e.description ?? undefined,
+    isVisible: e.is_visible ?? true,
+    includeInResume: e.include_in_resume ?? true,
   }))
 
   const skills = (catRes.data ?? []).map((c: any) => ({
     id: c.id,
     name: c.name,
     order: c.sort_order,
+    isVisible: c.is_visible ?? true,
+    includeInResume: c.include_in_resume ?? true,
     skills: (c.skills ?? [])
       .slice()
       .sort((a: any, b: any) => a.sort_order - b.sort_order)
       .map((s: any) => s.name),
   }))
 
-  const projects = (projectRes.data ?? []).map((proj: any) => ({
+  const projects = (projRes: any) => (projectRes.data ?? []).map((proj: any) => ({
     id: proj.id,
     title: proj.title,
     shortDescription: proj.short_description,
@@ -130,6 +131,8 @@ export async function getFullPortfolio(): Promise<PortfolioData> {
         url: img.url || null,
         alt: img.alt_text,
       })),
+    isVisible: proj.is_visible ?? true,
+    includeInResume: proj.include_in_resume ?? true,
   }))
 
   const achievements = (achieveRes.data ?? []).map((a: any) => ({
@@ -137,6 +140,8 @@ export async function getFullPortfolio(): Promise<PortfolioData> {
     title: a.title,
     description: a.description,
     date: a.date ?? undefined,
+    isVisible: a.is_visible ?? true,
+    includeInResume: a.include_in_resume ?? true,
   }))
 
   const externalLinks = (extRes.data ?? []).map((l: any) => ({
@@ -144,6 +149,8 @@ export async function getFullPortfolio(): Promise<PortfolioData> {
     label: l.label,
     url: l.url,
     description: l.description ?? undefined,
+    isVisible: l.is_visible ?? true,
+    includeInResume: l.include_in_resume ?? true,
   }))
 
   return {
@@ -151,7 +158,7 @@ export async function getFullPortfolio(): Promise<PortfolioData> {
     socialLinks,
     education,
     skills,
-    projects,
+    projects: projects(null),
     achievements,
     externalLinks,
     media: [],

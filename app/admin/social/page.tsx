@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/admin/PageHeader";
 import { FormField } from "@/components/admin/FormField";
 import { usePortfolio } from "@/lib/context/PortfolioContext";
 import { SortableList, SortableItem, SortableHandle } from "@/components/admin/SortableList";
+import { ItemToggleControls } from "@/components/admin/ItemToggleControls";
 import type { SocialLink } from "@/lib/types";
 
 /* ── Platform icon SVGs ── */
@@ -53,7 +54,7 @@ function EditForm({
 }
 
 export default function SocialPage() {
-  const { data, addSocialLink, updateSocialLink, deleteSocialLink, reorderSocialLinks } = usePortfolio();
+  const { data, addSocialLink, updateSocialLink, deleteSocialLink, reorderSocialLinks, toggleSocialLinkVisibility, toggleSocialLinkResume } = usePortfolio();
   const links = data.socialLinks;
 
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -107,6 +108,13 @@ export default function SocialPage() {
                     <p className="text-xs text-fg-subtle truncate">{link.url}</p>
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
+                    <ItemToggleControls
+                      isVisible={link.isVisible}
+                      includeInResume={link.includeInResume}
+                      onToggleVisibility={(val) => toggleSocialLinkVisibility(link.id, val)}
+                      onToggleResume={(val) => toggleSocialLinkResume(link.id, val)}
+                      size="sm"
+                    />
                     <button
                       onClick={() => setEditingId(link.id)}
                       className="p-1.5 rounded-md text-fg-subtle hover:text-foreground hover:bg-surface-2 transition-all"

@@ -6,9 +6,10 @@ import { PageHeader } from '@/components/admin/PageHeader'
 import { FormField } from '@/components/admin/FormField'
 import { usePortfolio } from '@/lib/context/PortfolioContext'
 import { SortableList, SortableItem, SortableHandle } from '@/components/admin/SortableList'
+import { ItemToggleControls } from '@/components/admin/ItemToggleControls'
 
 export default function AchievementsPage() {
-  const { data, addAchievement, updateAchievement, deleteAchievement, reorderAchievements } = usePortfolio()
+  const { data, addAchievement, updateAchievement, deleteAchievement, reorderAchievements, toggleAchievementVisibility, toggleAchievementResume } = usePortfolio()
   const items = data.achievements
 
   const [showAdd, setShowAdd] = useState(false)
@@ -73,6 +74,13 @@ export default function AchievementsPage() {
                   )}
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                  <ItemToggleControls
+                    isVisible={item.isVisible}
+                    includeInResume={item.includeInResume}
+                    onToggleVisibility={(val) => toggleAchievementVisibility(item.id, val)}
+                    onToggleResume={(val) => toggleAchievementResume(item.id, val)}
+                    size="sm"
+                  />
                   <button
                     onClick={() => startEditing(item)}
                     className="p-1.5 rounded-md text-fg-subtle hover:text-foreground hover:bg-surface-2 transition-all"
