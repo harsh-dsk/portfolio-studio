@@ -1,33 +1,37 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import { Plus, Pencil, Trash2 } from "lucide-react";
-import { PageHeader } from "@/components/admin/PageHeader";
-import { FormField } from "@/components/admin/FormField";
-import type { Achievement } from "@/lib/data/resume";
-import { resumeData } from "@/lib/data/resume";
-
-type AdminAchievement = Achievement & { id: string };
-
-const initialAchievements: AdminAchievement[] = resumeData.achievements.map((a, i) => ({
-  ...a,
-  id: String(i),
-}));
+import { useState } from 'react'
+import { Plus, Pencil, Trash2 } from 'lucide-react'
+import { PageHeader } from '@/components/admin/PageHeader'
+import { FormField } from '@/components/admin/FormField'
+import { usePortfolio } from '@/lib/context/PortfolioContext'
 
 export default function AchievementsPage() {
-  const [items, setItems] = useState<AdminAchievement[]>(initialAchievements);
-  const [showAdd, setShowAdd] = useState(false);
-  const [newItem, setNewItem] = useState({ title: "", description: "", date: "" });
+  const { data, addAchievement, updateAchievement, deleteAchievement } = usePortfolio()
+  const items = data.achievements
 
-  const deleteItem = (id: string) =>
-    setItems((prev) => prev.filter((a) => a.id !== id));
+  const [showAdd, setShowAdd] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [newItem, setNewItem] = useState({ title: '', description: '', date: '' })
+  const [editItem, setEditItem] = useState({ title: '', description: '', date: '' })
 
-  const addItem = () => {
-    if (!newItem.title.trim()) return;
-    setItems((prev) => [...prev, { ...newItem, id: Date.now().toString() }]);
-    setNewItem({ title: "", description: "", date: "" });
-    setShowAdd(false);
-  };
+  const handleAddItem = () => {
+    if (!newItem.title.trim()) return
+    addAchievement({ title: newItem.title, description: newItem.description, date: newItem.date })
+    setNewItem({ title: '', description: '', date: '' })
+    setShowAdd(false)
+  }
+  
+  const startEditing = (a: any) => {
+    setEditingId(a.id)
+    setEditItem({ title: a.title, description: a.description || '', date: a.date || '' })
+  }
+  
+  const handleEditItem = (id: string) => {
+    if (!editItem.title.trim()) return
+    updateAchievement(id, { title: editItem.title, description: editItem.description, date: editItem.date })
+    setEditingId(null)
+  }
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -35,7 +39,7 @@ export default function AchievementsPage() {
         title="Achievements"
         description="Manage awards, hackathon wins, certifications, and other accomplishments."
         action={{
-          label: "Add Achievement",
+          label: 'Add Achievement',
           icon: <Plus size={14} strokeWidth={2} />,
           onClick: () => setShowAdd((v) => !v),
         }}
@@ -46,35 +50,51 @@ export default function AchievementsPage() {
         {items.map((item, i) => (
           <div
             key={item.id}
-            className="flex items-start gap-4 px-5 py-4"
-            style={{ borderBottom: i < items.length - 1 ? "1px solid var(--ds-border)" : "none" }}
+            className="flex items-start gap-4 px-5 py-4 flex-col sm:flex-row"
+            style={{ borderBottom: i < items.length - 1 ? '1px solid var(--ds-border)' : 'none' }}
           >
-            {/* Number badge */}
-            <span className="text-xs font-mono text-fg-subtle tabular-nums mt-0.5 shrink-0 w-5 text-right">
-              {String(i + 1).padStart(2, "0")}
-            </span>
-            <div className="flex-1 min-w-0 space-y-0.5">
-              <p className="text-sm font-medium text-foreground">{item.title}</p>
-              <p className="text-xs text-fg-muted leading-relaxed">{item.description}</p>
-              {item.date && (
-                <p className="text-[11px] text-fg-subtle tabular-nums">{item.date}</p>
-              )}
+            <div className="flex w-full">
+              {/* Number badge */}
+              <span className="text-xs font-mono text-fg-subtle tabular-nums mt-0.5 shrink-0 w-5 text-right mr-4">
+                {String(i + 1).padStart(2, '0')}
+              </span>
+              <div className="flex-1 min-w-0 space-y-0.5">
+                <p className="text-sm font-medium text-foreground">{item.title}</p>
+                <p className="text-xs text-fg-muted leading-relaxed">{item.description}</p>
+                {item.date && (
+                  <p className="text-[11px] text-fg-subtle tabular-nums">{item.date}</p>
+                )}
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                <button
+                  onClick={() => startEditing(item)}
+                  className="p-1.5 rounded-md text-fg-subtle hover:text-foreground hover:bg-surface-2 transition-all"
+                  aria-label="Edit achievement"
+                >
+                  <Pencil size={13} strokeWidth={1.75} />
+                </button>
+                <button
+                  onClick={() => deleteAchievement(item.id)}
+                  className="p-1.5 rounded-md text-fg-subtle hover:text-[oklch(0.65_0.22_27)] hover:bg-[oklch(0.65_0.22_27_/_8%)] transition-all"
+                  aria-label="Delete achievement"
+                >
+                  <Trash2 size={13} strokeWidth={1.75} />
+                </button>
+              </div>
             </div>
-            <div className="flex items-center gap-1.5 shrink-0">
-              <button
-                className="p-1.5 rounded-md text-fg-subtle hover:text-foreground hover:bg-surface-2 transition-all"
-                aria-label="Edit achievement"
-              >
-                <Pencil size={13} strokeWidth={1.75} />
-              </button>
-              <button
-                onClick={() => deleteItem(item.id)}
-                className="p-1.5 rounded-md text-fg-subtle hover:text-[oklch(0.65_0.22_27)] hover:bg-[oklch(0.65_0.22_27_/_8%)] transition-all"
-                aria-label="Delete achievement"
-              >
-                <Trash2 size={13} strokeWidth={1.75} />
-              </button>
-            </div>
+            
+            {/* Inline Edit Form */}
+            {editingId === item.id && (
+              <div className="w-full mt-3 pt-3 border-t border-border flex flex-col gap-3 ml-0 sm:ml-9">
+                <input className="admin-input text-xs" value={editItem.title} onChange={(e) => setEditItem((p) => ({ ...p, title: e.target.value }))} placeholder="Title" />
+                <textarea className="admin-textarea text-xs" rows={2} value={editItem.description} onChange={(e) => setEditItem((p) => ({ ...p, description: e.target.value }))} placeholder="Description" />
+                <input className="admin-input text-xs" value={editItem.date} onChange={(e) => setEditItem((p) => ({ ...p, date: e.target.value }))} placeholder="Date (e.g. Mar 2024)" />
+                <div className="flex gap-2">
+                  <button onClick={() => handleEditItem(item.id)} className="h-7 px-3 text-[11px] font-medium rounded bg-brand text-brand-fg">Save</button>
+                  <button onClick={() => setEditingId(null)} className="h-7 px-3 text-[11px] font-medium rounded border border-border text-fg-muted">Cancel</button>
+                </div>
+              </div>
+            )}
           </div>
         ))}
         {items.length === 0 && (
@@ -100,11 +120,11 @@ export default function AchievementsPage() {
             <textarea className="admin-textarea" rows={3} value={newItem.description} onChange={(e) => setNewItem((p) => ({ ...p, description: e.target.value }))} placeholder="Brief description of the achievement..." />
           </FormField>
           <div className="flex gap-2.5">
-            <button onClick={addItem} className="h-9 px-4 text-sm font-medium rounded-lg bg-brand text-brand-fg hover:bg-brand-hover transition-colors duration-150">Add</button>
+            <button onClick={handleAddItem} className="h-9 px-4 text-sm font-medium rounded-lg bg-brand text-brand-fg hover:bg-brand-hover transition-colors duration-150">Add</button>
             <button onClick={() => setShowAdd(false)} className="h-9 px-4 text-sm font-medium rounded-lg border border-border text-fg-muted hover:text-foreground hover:bg-surface-2 transition-all duration-150">Cancel</button>
           </div>
         </div>
       )}
     </div>
-  );
+  )
 }

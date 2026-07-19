@@ -1,8 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import { initialPortfolioData } from "@/lib/data/initial-data";
-import { loadPortfolioData, STORAGE_EVENT_KEY } from "@/lib/storage";
+import { useState, useRef } from "react";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { ProfilePhoto } from "@/components/ui/ProfilePhoto";
 import { AnimatedBackground } from "@/components/ui/AnimatedBackground";
@@ -31,25 +29,10 @@ import type { PortfolioData } from "@/lib/types";
  *  Replace `loadPortfolioData()` with a server-side fetch in a Server Component
  *  and pass data as a prop. The UI components remain unchanged.
  */
-export function PublicPortfolio() {
-  const [data, setData] = useState<PortfolioData>(initialPortfolioData);
+export function PublicPortfolio({ initialData }: { initialData: PortfolioData }) {
+  const [data, setData] = useState<PortfolioData>(initialData);
 
-  useEffect(() => {
-    // Load latest saved data from localStorage
-    const stored = loadPortfolioData();
-    if (stored) setData(stored);
 
-    // Listen for changes made in the admin tab (BroadcastChannel via storage event)
-    const handleStorageEvent = (e: StorageEvent) => {
-      if (e.key === STORAGE_EVENT_KEY && e.newValue) {
-        try {
-          setData(JSON.parse(e.newValue) as PortfolioData);
-        } catch {}
-      }
-    };
-    window.addEventListener("storage", handleStorageEvent);
-    return () => window.removeEventListener("storage", handleStorageEvent);
-  }, []);
 
   const { profile, socialLinks, education, skills, projects, achievements, externalLinks } = data;
 

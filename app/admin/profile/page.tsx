@@ -1,41 +1,59 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import { Camera } from "lucide-react";
-import { PageHeader } from "@/components/admin/PageHeader";
-import { FormField } from "@/components/admin/FormField";
-import { ProfilePhoto } from "@/components/ui/ProfilePhoto";
-import { usePortfolio } from "@/lib/context/PortfolioContext";
-import type { AvailabilityStatus } from "@/lib/types";
+import { useState } from 'react'
+import { Camera } from 'lucide-react'
+import { PageHeader } from '@/components/admin/PageHeader'
+import { FormField } from '@/components/admin/FormField'
+import { ProfilePhoto } from '@/components/ui/ProfilePhoto'
+import { usePortfolio } from '@/lib/context/PortfolioContext'
+import type { AvailabilityStatus } from '@/lib/types'
+import { uploadProfilePhoto } from '@/lib/services/profile.service'
 
 const AVAILABILITY_OPTIONS: { value: AvailabilityStatus; label: string; description: string; color: string }[] = [
-  { value: "available",      label: "Available for work",   description: "Actively looking for new opportunities", color: "oklch(0.72 0.17 155)" },
-  { value: "open-to-work",   label: "Open to work",          description: "Employed but open to the right role",    color: "oklch(0.76 0.14 65)"  },
-  { value: "employed",       label: "Currently employed",    description: "Not actively looking",                   color: "oklch(0.63 0.19 251)" },
-  { value: "unavailable",    label: "Not available",          description: "Not open to new roles right now",        color: "oklch(0.65 0.22 27)"  },
-];
+  { value: 'available',      label: 'Available for work',   description: 'Actively looking for new opportunities', color: 'oklch(0.72 0.17 155)' },
+  { value: 'open-to-work',   label: 'Open to work',          description: 'Employed but open to the right role',    color: 'oklch(0.76 0.14 65)'  },
+  { value: 'employed',       label: 'Currently employed',    description: 'Not actively looking',                   color: 'oklch(0.63 0.19 251)' },
+  { value: 'unavailable',    label: 'Not available',          description: 'Not open to new roles right now',        color: 'oklch(0.65 0.22 27)'  },
+]
 
 export default function ProfilePage() {
-  const { data, updateProfile } = usePortfolio();
-  const { profile } = data;
+  const { data, updateProfile } = usePortfolio()
+  const { profile } = data
 
-  const [name,         setName]         = useState(profile.name);
-  const [title,        setTitle]        = useState(profile.title);
-  const [phone,        setPhone]        = useState(profile.phone);
-  const [email,        setEmail]        = useState(profile.email);
-  const [location,     setLocation]     = useState(profile.location);
-  const [college,      setCollege]      = useState(profile.college);
-  const [objective,    setObjective]    = useState(profile.objective);
-  const [availability, setAvailability] = useState<AvailabilityStatus>(profile.availability);
-  const [saved,        setSaved]        = useState(false);
+  const [name,         setName]         = useState(profile.name)
+  const [title,        setTitle]        = useState(profile.title)
+  const [phone,        setPhone]        = useState(profile.phone)
+  const [email,        setEmail]        = useState(profile.email)
+  const [location,     setLocation]     = useState(profile.location)
+  const [college,      setCollege]      = useState(profile.college)
+  const [objective,    setObjective]    = useState(profile.objective)
+  const [availability, setAvailability] = useState<AvailabilityStatus>(profile.availability)
+  const [saved,        setSaved]        = useState(false)
+  const [photoUrl,     setPhotoUrl]     = useState<string | null>(profile.photo || null)
+  const [photoUploading, setPhotoUploading] = useState(false)
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setPhotoUploading(true)
+    try {
+      const url = await uploadProfilePhoto(file)
+      setPhotoUrl(url)
+      updateProfile({ photo: url })
+    } catch (err) {
+      console.error('Photo upload failed:', err)
+    } finally {
+      setPhotoUploading(false)
+    }
+  }
 
   const handleSave = () => {
-    updateProfile({ name, title, phone, email, location, college, objective, availability });
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  };
+    updateProfile({ name, title, phone, email, location, college, objective, availability, photo: photoUrl || undefined })
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2000)
+  }
 
-  const selectedAvail = AVAILABILITY_OPTIONS.find((o) => o.value === availability)!;
+  const selectedAvail = AVAILABILITY_OPTIONS.find((o) => o.value === availability)!
 
   return (
     <div className="max-w-4xl space-y-6">
@@ -49,23 +67,29 @@ export default function ProfilePage() {
         <div className="rounded-xl border border-border bg-surface-1 p-6 space-y-6">
           {/* Photo */}
           <div className="flex items-center gap-5">
-            <ProfilePhoto name={name} size={72} />
+            <ProfilePhoto name={name} src={photoUrl ?? undefined} size={72} />
             <div>
               <p className="text-sm font-medium text-foreground">Profile Photo</p>
               <p className="text-xs text-fg-subtle mt-0.5 mb-2">
-                Photo upload will be available once Media Library is connected.
+                Uploads directly to Supabase Storage.
               </p>
-              <button
-                disabled
-                className="inline-flex items-center gap-1.5 h-8 px-3 text-xs font-medium rounded-lg border border-border text-fg-subtle bg-surface-2 opacity-50 cursor-not-allowed"
+              <label
+                className="inline-flex items-center gap-1.5 h-8 px-3 text-xs font-medium rounded-lg border border-border text-fg-muted bg-surface-2 hover:border-border-hover hover:text-foreground transition-all cursor-pointer"
               >
                 <Camera size={12} strokeWidth={1.75} />
-                Upload Photo
-              </button>
+                {photoUploading ? 'Uploading…' : 'Upload Photo'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="sr-only"
+                  onChange={handlePhotoUpload}
+                  disabled={photoUploading}
+                />
+              </label>
             </div>
           </div>
 
-          <div style={{ borderTop: "1px solid var(--ds-border)" }} className="pt-6 space-y-5">
+          <div style={{ borderTop: '1px solid var(--ds-border)' }} className="pt-6 space-y-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <FormField label="Full Name" required>
                 <input className="admin-input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Your full name" />
@@ -101,8 +125,8 @@ export default function ProfilePage() {
                     onClick={() => setAvailability(opt.value)}
                     className="flex items-start gap-3 p-3 rounded-lg border text-left transition-all duration-150"
                     style={{
-                      borderColor: availability === opt.value ? opt.color : "var(--ds-border)",
-                      background: availability === opt.value ? `${opt.color.replace(")", " / 8%)")}` : "var(--ds-surface-2)",
+                      borderColor: availability === opt.value ? opt.color : 'var(--ds-border)',
+                      background: availability === opt.value ? `${opt.color.replace(')', ' / 8%)')}` : 'var(--ds-surface-2)',
                     }}
                   >
                     <span
@@ -123,11 +147,10 @@ export default function ProfilePage() {
             <button
               onClick={handleSave}
               className="h-9 px-5 text-sm font-medium rounded-lg transition-colors duration-150"
-              style={{ background: saved ? "oklch(0.72 0.17 155)" : "var(--ds-accent)", color: "var(--ds-accent-fg)" }}
+              style={{ background: saved ? 'oklch(0.72 0.17 155)' : 'var(--ds-accent)', color: 'var(--ds-accent-fg)' }}
             >
-              {saved ? "Saved ✓" : "Save Changes"}
+              {saved ? 'Saved ✓' : 'Save Changes'}
             </button>
-            <p className="text-xs text-fg-subtle">Session-scoped. Supabase needed for persistence.</p>
           </div>
         </div>
 
@@ -135,24 +158,24 @@ export default function ProfilePage() {
         <div className="rounded-xl border border-border bg-surface-1 p-5 space-y-4 h-fit">
           <p className="text-xs font-medium uppercase tracking-[0.1em] text-fg-subtle">Preview</p>
           <div className="flex flex-col items-center text-center gap-3">
-            <ProfilePhoto name={name} size={80} />
+            <ProfilePhoto name={name} src={photoUrl ?? undefined} size={80} />
             <div>
               <p className="text-sm font-semibold text-foreground">{name}</p>
               <p className="text-xs text-fg-muted mt-0.5">{title}</p>
               <div
                 className="inline-flex items-center gap-1.5 mt-2 px-2.5 py-1 rounded-full text-[10px] font-medium"
-                style={{ background: `${selectedAvail.color.replace(")", " / 12%)")}`, color: selectedAvail.color }}
+                style={{ background: `${selectedAvail.color.replace(')', ' / 12%)')}`, color: selectedAvail.color }}
               >
                 <span className="w-1.5 h-1.5 rounded-full" style={{ background: selectedAvail.color }} />
                 {selectedAvail.label}
               </div>
             </div>
           </div>
-          <div style={{ borderTop: "1px solid var(--ds-border)" }} className="pt-3">
+          <div style={{ borderTop: '1px solid var(--ds-border)' }} className="pt-3">
             <p className="text-[11px] text-fg-subtle line-clamp-4 leading-relaxed">{objective}</p>
           </div>
         </div>
       </div>
     </div>
-  );
+  )
 }

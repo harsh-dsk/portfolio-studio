@@ -161,7 +161,7 @@ function CategoryCard({
                 {skill}
                 <div className="flex items-center gap-0.5 ml-1">
                   <button onClick={() => moveSkill(si, "up")} disabled={si === 0} className="p-0.5 rounded text-fg-subtle hover:text-foreground disabled:opacity-20 transition-colors" title="Move up" aria-label={`Move ${skill} up`}><ChevronUp size={10} strokeWidth={2.5} /></button>
-                  <button onClick={() => moveSkill(si, category.skills.length - 1)} disabled={si === category.skills.length - 1} className="p-0.5 rounded text-fg-subtle hover:text-foreground disabled:opacity-20 transition-colors" title="Move down" aria-label={`Move ${skill} down`}><ChevronDown size={10} strokeWidth={2.5} /></button>
+                  <button onClick={() => moveSkill(si, "down")} disabled={si === category.skills.length - 1} className="p-0.5 rounded text-fg-subtle hover:text-foreground disabled:opacity-20 transition-colors" title="Move down" aria-label={`Move ${skill} down`}><ChevronDown size={10} strokeWidth={2.5} /></button>
                   <button onClick={() => removeSkill(category.id, skill)} className="p-0.5 rounded text-fg-subtle hover:text-[oklch(0.65_0.22_27)] transition-colors" aria-label={`Remove ${skill}`}><X size={11} strokeWidth={2} /></button>
                 </div>
               </div>

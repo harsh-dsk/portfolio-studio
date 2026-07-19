@@ -84,7 +84,6 @@ Card.Header = function CardHeader({
     </div>
   );
 };
-Card.Header.displayName = "Card.Header";
 
 Card.Title = function CardTitle({
   className,
@@ -103,7 +102,6 @@ Card.Title = function CardTitle({
     </h3>
   );
 };
-Card.Title.displayName = "Card.Title";
 
 Card.Description = function CardDescription({
   className,
@@ -122,7 +120,6 @@ Card.Description = function CardDescription({
     </p>
   );
 };
-Card.Description.displayName = "Card.Description";
 
 Card.Footer = function CardFooter({
   className,
@@ -138,4 +135,3 @@ Card.Footer = function CardFooter({
     </div>
   );
 };
-Card.Footer.displayName = "Card.Footer";

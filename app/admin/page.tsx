@@ -150,9 +150,9 @@ export default function AdminDashboardPage() {
             <p className="text-xs font-medium uppercase tracking-[0.1em] text-fg-subtle mb-3">Recent Activity</p>
             <ul className="space-y-3">
               {[
-                { icon: CheckCircle, text: "Portfolio data initialised",    time: "Just now",  color: "oklch(0.72 0.17 155)" },
-                { icon: Clock,       text: "Last export: never",             time: "—",         color: "oklch(0.63 0.19 251)" },
-                { icon: FolderOpen,  text: `${stats.projects} projects ready`, time: "Draft",  color: "oklch(0.76 0.14 65)"  },
+                { icon: CheckCircle, text: "Connected to Supabase",          time: "Live",      color: "oklch(0.72 0.17 155)" },
+                { icon: Clock,       text: "Last sync: real-time",            time: "Now",       color: "oklch(0.63 0.19 251)" },
+                { icon: FolderOpen,  text: `${stats.projects} projects live`, time: "Published", color: "oklch(0.76 0.14 65)"  },
               ].map(({ icon: Icon, text, time, color }) => (
                 <li key={text} className="flex items-start gap-3 text-xs">
                   <Icon size={14} strokeWidth={1.75} className="mt-0.5 shrink-0" style={{ color }} />
@@ -168,13 +168,13 @@ export default function AdminDashboardPage() {
       {/* Status banner */}
       <div
         className="flex items-start gap-3 px-4 py-3.5 rounded-xl border text-sm"
-        style={{ background: "oklch(0.63 0.19 251 / 7%)", borderColor: "oklch(0.63 0.19 251 / 20%)" }}
+        style={{ background: "oklch(0.72 0.17 155 / 7%)", borderColor: "oklch(0.72 0.17 155 / 20%)" }}
       >
-        <span className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0 animate-pulse" style={{ background: "oklch(0.63 0.19 251)" }} />
+        <span className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0" style={{ background: "oklch(0.72 0.17 155)" }} />
         <div>
-          <p className="font-medium text-foreground">Frontend-only mode</p>
+          <p className="font-medium text-foreground">Connected to Supabase</p>
           <p className="text-fg-muted text-xs mt-0.5">
-            All changes are session-scoped. Supabase integration and authentication will be wired in the next sprint.
+            All changes persist to the database and are immediately reflected on the public portfolio.
           </p>
         </div>
       </div>

@@ -1,22 +1,20 @@
-import type { Metadata } from "next";
-import { PublicPortfolio } from "@/components/portfolio/PublicPortfolio";
+import type { Metadata } from 'next'
+import { PublicPortfolio } from '@/components/portfolio/PublicPortfolio'
+import { getFullPortfolio } from '@/lib/services/portfolio.service'
 
 export const metadata: Metadata = {
-  title: "Harshdeep Singh — Full Stack Developer",
+  title: 'Harshdeep Singh — Full Stack Developer',
   description:
-    "Full Stack Developer specializing in React, Next.js, and TypeScript. Building thoughtful digital products with care and precision.",
-};
+    'Full Stack Developer specializing in React, Next.js, and TypeScript. Building thoughtful digital products with care and precision.',
+}
 
 /**
- * HomePage
+ * HomePage — Server Component
  *
- * Server component — minimal shell.
- * All data fetching and rendering happens inside PublicPortfolio (client).
- *
- * SUPABASE MIGRATION:
- *  Fetch data here as a server component and pass as `initialData` prop
- *  to PublicPortfolio to avoid the localStorage cold-start flash.
+ * Fetches the full portfolio data from Supabase on every request.
+ * Passes it to PublicPortfolio as a prop (no localStorage, no cold-start flash).
  */
-export default function HomePage() {
-  return <PublicPortfolio />;
+export default async function HomePage() {
+  const data = await getFullPortfolio()
+  return <PublicPortfolio initialData={data} />
 }
