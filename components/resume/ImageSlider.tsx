@@ -198,13 +198,19 @@ export function ImageSlider({ screenshots, project, className }: ImageSliderProp
                 draggable={false}
               />
 
-              {/* Hover overlay hint */}
-              <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center pointer-events-none">
-                <span className="px-3 py-1.5 rounded-full bg-black/70 text-white text-xs font-medium backdrop-blur-md flex items-center gap-1.5 shadow-lg border border-white/10">
-                  <Maximize2 size={13} />
-                  <span>Click for Fullscreen</span>
-                </span>
-              </div>
+              {/* Top-right Expand button */}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setLightboxOpen(true);
+                }}
+                className="absolute top-3 right-3 w-9 h-9 rounded-xl bg-black/50 text-white/80 hover:text-white backdrop-blur-md border border-white/20 shadow-lg flex items-center justify-center transition-all duration-200 opacity-70 group-hover:opacity-100 hover:scale-105 hover:bg-black/75 z-20"
+                title="View Fullscreen"
+                aria-label="View Fullscreen"
+              >
+                <Maximize2 size={16} strokeWidth={2} />
+              </button>
             </>
           ) : (
             <ScreenPlaceholder project={project} viewIndex={current} />
